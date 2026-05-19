@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:3002
+
+### Root
+GET {{baseUrl}}/
+
+### Health check
+GET {{baseUrl}}/api/health
+
+# Auth endpoints are not listed here yet because register/login routes are not
+# currently registered in src/routes/api.ts.
