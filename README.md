@@ -1,6 +1,6 @@
 # Event Management REST API
 
-REST API berbasis Express.js dan TypeScript untuk manajemen event, pendaftaran peserta, tiket, check-in, dan laporan. Project ini dirancang menggunakan Prisma ORM dengan PostgreSQL, Redis slot pool, BullMQ worker, validasi data dengan Zod, dan konfigurasi environment melalui dotenv.
+REST API untuk manajemen event, registrasi peserta, pembayaran tiket, slot pool tiket terbatas, check-in, dan laporan. Project ini memakai PostgreSQL sebagai database utama, Redis untuk slot pool/queue, dan BullMQ worker untuk proses asynchronous seperti pembuatan order.
 
 ## Tech Stack
 
@@ -12,88 +12,95 @@ REST API berbasis Express.js dan TypeScript untuk manajemen event, pendaftaran p
 - Redis
 - BullMQ
 - Zod
+- JWT
+- bcrypt
+- Pino logger
 
-## Cara Menjalankan
-
-### 1. Install dependencies
+## Install
 
 ```bash
 npm install
 ```
 
-### 2. Buat file `.env`
-
-Copy file `.env.example` menjadi `.env`:
+Copy environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-Sesuaikan nilai database connection di `.env`:
+Sesuaikan isi `.env`:
 
 ```env
+PORT=3000
+NODE_ENV=development
 DATABASE_URL="postgresql://event_user:event_password@localhost:5432/event_management?schema=public"
 REDIS_URL="redis://localhost:6379"
 QUEUE_CREATE_ORDER_NAME="create-order"
-PORT=3000
+JWT_SECRET="your_jwt_secret_key"
+LOG_LEVEL="info"
 ```
 
-### 3. Generate Prisma Client
+Pastikan PostgreSQL database dan Redis sudah berjalan.
+
+## Database
+
+Generate Prisma Client:
 
 ```bash
 npm run db:generate
 ```
 
-### 4. Jalankan migration database
+Jalankan migration:
 
 ```bash
 npm run db:migrate
 ```
 
-### 5. Jalankan development server
+Opsional, buka Prisma Studio:
+
+```bash
+npm run db:studio
+```
+
+## Running
+
+Development server:
 
 ```bash
 npm run dev
 ```
 
-Server akan berjalan di:
+Server berjalan di:
 
 ```text
 http://localhost:3000
 ```
 
-### 6. Jalankan worker create order
-
-Worker ini memproses job setelah slot tiket berhasil di-hold di Redis.
+Worker create order:
 
 ```bash
 npm run worker:create-order
 ```
 
-## Script Tersedia
-
-| Command | Deskripsi |
-| --- | --- |
-| `npm run dev` | Menjalankan server development dengan watch mode |
-| `npm run build` | Compile TypeScript ke folder `dist` |
-| `npm run start` | Menjalankan hasil build dari `dist/server.js` |
-| `npm run worker:create-order` | Menjalankan BullMQ worker untuk membuat order setelah reservasi slot |
-| `npm run test` | Menjalankan build check |
-| `npm run db:generate` | Generate Prisma Client dari `prisma/schema.prisma` |
-| `npm run db:migrate` | Membuat dan menjalankan migration Prisma |
-| `npm run db:push` | Push schema Prisma ke database tanpa migration file, gunakan hanya untuk prototyping |
-| `npm run db:studio` | Membuka Prisma Studio |
-
-## Endpoint Dasar
-
-| Method | Endpoint | Deskripsi |
-| --- | --- | --- |
-| `GET` | `/` | Welcome response |
-| `GET` | `/api/health` | Health check API |
-
-## Build Production
+Build dan production run:
 
 ```bash
 npm run build
 npm run start
 ```
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Run development server |
+| `npm run build` | Compile TypeScript |
+| `npm run start` | Run compiled app |
+| `npm run worker:create-order` | Run BullMQ create-order worker |
+| `npm run test` | Run TypeScript build check |
+| `npm run db:generate` | Generate Prisma Client |
+| `npm run db:migrate` | Run Prisma migration |
+| `npm run db:push` | Push schema without migration, for prototyping |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run format` | Format files with Prettier |
+| `npm run format:check` | Check formatting |

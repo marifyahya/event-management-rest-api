@@ -1,0 +1,8 @@
+node_modules
+.plans
+dist
+src/generated
+package-lock.json
+.env
+*.md
+

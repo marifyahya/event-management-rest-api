@@ -6,4 +6,4 @@ dist
 *.db
 *.db-journal
 .plan-bioskop
-
+src/generated

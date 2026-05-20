@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:3002
+@contentType = application/json
+
+### Root
+GET {{baseUrl}}/
+
+### Health check
+GET {{baseUrl}}/api/health
+
+### User registration
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "fullname": "Arif Yahya",
+  "email": "arifyahya@gmail.com",
+  "password": "password"
+}
+
+### User login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "arifyahya@gmail.com",
+  "password": "password"
+}
+
+### Set Auth Token
+@token = {{login.response.body.data.token}}
+
+### Get user profile
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+Accept: {{contentType}}
+
+### Logout user
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{token}}
+Accept: {{contentType}}
