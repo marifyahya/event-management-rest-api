@@ -1,10 +1,12 @@
 import { Router } from 'express';
 
-import { registerUserSchema } from '../validators/user.validator.js';
+import { indexUserSchema, registerUserSchema } from '../validators/user.validator.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
+import { roleAdminMiddleware } from '../middleware/role-admin.middleware.js';
 
 import * as authController from '../controllers/auth.controller.js';
+import * as userController from '../controllers/user.controller.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -23,6 +25,8 @@ router.post('/auth/login', authController.login);
 
 protectedRouter.get('/auth/me', authController.me);
 protectedRouter.post('/auth/logout', authController.logout);
+
+protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), userController.index);
 
 router.use(protectedRouter);
 

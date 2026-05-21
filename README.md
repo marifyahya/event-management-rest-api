@@ -56,6 +56,19 @@ Jalankan migration:
 npm run db:migrate
 ```
 
+Jalankan seeder untuk membuat data awal, termasuk user admin:
+
+```bash
+npm run db:seed
+```
+
+Default admin dari seeder:
+
+```text
+Email: admin@example.com
+Password: password
+```
+
 Opsional, buka Prisma Studio:
 
 ```bash
@@ -101,6 +114,7 @@ npm run start
 | `npm run db:generate` | Generate Prisma Client |
 | `npm run db:migrate` | Run Prisma migration |
 | `npm run db:push` | Push schema without migration, for prototyping |
+| `npm run db:seed` | Seed initial database data |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run format` | Format files with Prettier |
 | `npm run format:check` | Check formatting |

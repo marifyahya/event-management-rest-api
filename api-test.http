@@ -23,7 +23,7 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "arifyahya@gmail.com",
+  "email": "admin@example.com",
   "password": "password"
 }
 
@@ -37,5 +37,10 @@ Accept: {{contentType}}
 
 ### Logout user
 POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{token}}
+Accept: {{contentType}}
+
+### Get all users (admin only)
+GET {{baseUrl}}/api/users?name=arif&isActive=true
 Authorization: Bearer {{token}}
 Accept: {{contentType}}

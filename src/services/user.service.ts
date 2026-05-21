@@ -1,6 +1,5 @@
 import { prisma } from '../db/index.js';
 import bcrypt from 'bcrypt';
-import { NotFoundError } from '../utils/app-error.js';
 
 class UserService {
   async register(user: { fullname: string; email: string; password: string }) {
@@ -33,8 +32,77 @@ class UserService {
       data: { lastLoginAt: new Date() },
     });
   }
+
   comparePassword(plainPassword: string, hashedPassword: string) {
     return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  async getAllUser(query: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    email?: string;
+    role?: string;
+    isActive?: boolean;
+  }) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const where = {
+      ...(query.name && {
+        fullName: {
+          contains: query.name,
+          mode: 'insensitive' as const,
+        },
+      }),
+      ...(query.email && {
+        email: {
+          contains: query.email,
+          mode: 'insensitive' as const,
+        },
+      }),
+      ...(query.role && {
+        role: query.role,
+      }),
+      ...(typeof query.isActive === 'boolean' && {
+        isActive: query.isActive,
+      }),
+    };
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          isActive: true,
+          lastLoginAt: true,
+          createdAt: true,
+        },
+      }),
+
+      prisma.user.count({
+        where,
+      }),
+    ]);
+
+    return {
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }
 
