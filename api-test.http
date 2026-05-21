@@ -44,3 +44,8 @@ Accept: {{contentType}}
 GET {{baseUrl}}/api/users?name=arif&isActive=true
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
+
+### Get user by ID (admin only)
+GET {{baseUrl}}/api/users/1
+Authorization: Bearer {{token}}
+Accept: {{contentType}}

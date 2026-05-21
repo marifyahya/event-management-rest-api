@@ -27,6 +27,7 @@ protectedRouter.get('/auth/me', authController.me);
 protectedRouter.post('/auth/logout', authController.logout);
 
 protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), userController.index);
+protectedRouter.get('/users/:id', roleAdminMiddleware, userController.show);
 
 router.use(protectedRouter);
 
