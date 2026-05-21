@@ -2,9 +2,25 @@ import z from 'zod';
 
 export const registerUserSchema = z.object({
   body: z.object({
-    fullname: z.string().min(3, 'Full name must be at least 3 characters'),
-    email: z.email('Invalid email format'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    fullName: z
+      .string()
+      .min(3, 'Full name must be at least 3 characters')
+      .max(50, 'Full name must be at most 50 characters'),
+    email: z.email('Invalid email format').max(100, 'Email must be at most 100 characters'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(16, 'Password must be at most 16 characters'),
+  }),
+});
+
+export const loginUserSchema = z.object({
+  body: z.object({
+    email: z.email('Invalid email format').max(100, 'Email must be at most 100 characters'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(16, 'Password must be at most 16 characters'),
   }),
 });
 
@@ -16,5 +32,21 @@ export const indexUserSchema = z.object({
     email: z.string().trim().optional(),
     role: z.string().trim().optional(),
     isActive: z.enum(['true', 'false']).optional(),
+  }),
+});
+
+export const storeUserSchema = z.object({
+  body: z.object({
+    fullName: z
+      .string()
+      .min(3, 'Full name must be at least 3 characters')
+      .max(50, 'Full name must be at most 50 characters'),
+    email: z.email('Invalid email format').max(100, 'Email must be at most 100 characters'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(16, 'Password must be at most 16 characters'),
+    role: z.enum(['admin', 'staff'], 'Role must be either admin or staff').optional(),
+    isActive: z.boolean().optional(),
   }),
 });

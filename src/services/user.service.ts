@@ -2,10 +2,10 @@ import { prisma } from '../db/index.js';
 import bcrypt from 'bcrypt';
 
 class UserService {
-  async register(user: { fullname: string; email: string; password: string }) {
+  async register(user: { fullName: string; email: string; password: string }) {
     const newUser = await prisma.user.create({
       data: {
-        fullName: user.fullname,
+        fullName: user.fullName,
         email: user.email,
         password: await bcrypt.hash(user.password, 10),
       },
@@ -120,6 +120,19 @@ class UserService {
     });
 
     return user;
+  }
+
+  async store(user: { fullName: string; email: string; password: string; role?: string; isActive?: boolean }) {
+    const password = await bcrypt.hash(user.password, 10);
+    return prisma.user.create({
+      data: {
+        fullName: user.fullName,
+        email: user.email,
+        password: password,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    });
   }
 }
 

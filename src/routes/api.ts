@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { indexUserSchema, registerUserSchema } from '../validators/user.validator.js';
+import { indexUserSchema, loginUserSchema, registerUserSchema, storeUserSchema } from '../validators/user.validator.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { roleAdminMiddleware } from '../middleware/role-admin.middleware.js';
@@ -21,13 +21,14 @@ router.get('/health', (_req, res) => {
 });
 
 router.post('/auth/register', validate(registerUserSchema), authController.register);
-router.post('/auth/login', authController.login);
+router.post('/auth/login', validate(loginUserSchema), authController.login);
 
 protectedRouter.get('/auth/me', authController.me);
 protectedRouter.post('/auth/logout', authController.logout);
 
 protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), userController.index);
 protectedRouter.get('/users/:id', roleAdminMiddleware, userController.show);
+protectedRouter.post('/users', roleAdminMiddleware, validate(storeUserSchema), userController.store);
 
 router.use(protectedRouter);
 

@@ -4,9 +4,7 @@ import { generateToken } from '../libs/jwt.js';
 import { asyncHandler } from '../utils/async-handler.js';
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { fullname, email, password } = req.body;
-
-  const findUser = await userService.findByEmail(email);
+  const findUser = await userService.findByEmail(req.body.email);
   if (findUser) {
     return res.status(400).json({
       success: false,
@@ -14,7 +12,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  const user = await userService.register({ fullname, email, password });
+  const user = await userService.register(req.body);
   res.status(201).json({
     success: true,
     message: 'User registered successfully',
@@ -42,13 +40,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   await userService.updateLastLogin(user.id);
 
-  const {
-    isActive: _isActive,
-    role: _role,
-    lastLoginAt: _lastLoginAt,
-    password: _password,
-    ...safeUser
-  } = user;
+  const { isActive: _isActive, role: _role, lastLoginAt: _lastLoginAt, password: _password, ...safeUser } = user;
 
   return res.json({
     success: true,

@@ -3,12 +3,7 @@ import { Prisma } from '../generated/prisma/client.js';
 import { AppError } from '../utils/app-error.js';
 import { logger } from '../libs/logger.js';
 
-export const errorHandler: ErrorRequestHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-) => {
+export const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   // Handle Custom App Errors

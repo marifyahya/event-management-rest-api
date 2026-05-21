@@ -38,3 +38,22 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
     data: user,
   });
 });
+
+export const store = asyncHandler(async (req: Request, res: Response) => {
+  const findUser = await userService.findByEmail(req.body.email);
+  if (findUser) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email already exists',
+    });
+  }
+
+  const user = await userService.store(req.body);
+  const { password: _password, ...safeUser } = user;
+
+  res.status(201).json({
+    success: true,
+    message: 'User created successfully',
+    data: safeUser,
+  });
+});

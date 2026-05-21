@@ -12,8 +12,8 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: {{contentType}}
 
 {
-  "fullname": "Arif Yahya",
-  "email": "arifyahya@gmail.com",
+  "fullName": "Arif Yahya",
+  "email": "arifyahyaa@gmail.com",
   "password": "password"
 }
 
@@ -41,7 +41,7 @@ Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
 ### Get all users (admin only)
-GET {{baseUrl}}/api/users?name=arif&isActive=true
+GET {{baseUrl}}/api/users
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
@@ -49,3 +49,15 @@ Accept: {{contentType}}
 GET {{baseUrl}}/api/users/1
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
+
+### Create new user (admin only)
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "fullName": "New User",
+  "email": "newuser1@example.com",
+  "password": "password",
+  "role": "admin"
+}
