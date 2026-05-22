@@ -44,6 +44,7 @@ protectedRouter.patch('/users/:id', validate(updateUserSchema), userController.u
 protectedRouter.delete('/users/:id', userController.destroy);
 
 protectedRouter.post('/events', validate(storeEventSchema), eventController.store);
+protectedRouter.get('/events', eventController.index);
 
 router.use(protectedRouter);
 
