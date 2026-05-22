@@ -1,16 +1,16 @@
 # Event Management Frontend UI Design
 
-Dokumen ini berisi rancangan UI frontend untuk aplikasi Event Management yang menggunakan Event Management REST API sebagai backend.
+This document describes the frontend UI plan for the Event Management application that uses Event Management REST API as backend.
 
 ---
 
 ## 1. Design Goals
 
-- Membuat pengalaman pengguna yang cepat untuk organizer dalam mengelola event, peserta, tiket, check-in, dan laporan.
-- Memberikan alur registrasi event yang sederhana untuk attendee.
-- Menyediakan dashboard yang mudah dipindai, padat informasi, dan cocok untuk pekerjaan operasional.
-- Memastikan tampilan responsif untuk desktop, tablet, dan mobile.
-- Mengurangi risiko kesalahan saat publish event, cancel event, dan check-in tiket.
+- Deliver fast workflows for organizers to manage events, attendees, tickets, check-ins, and reports.
+- Provide a simple event registration flow for attendees.
+- Build dashboards that are easy to scan and operationally useful.
+- Ensure responsive behavior on desktop, tablet, and mobile.
+- Reduce user mistakes during publish, cancel, and check-in actions.
 
 ---
 
@@ -18,10 +18,10 @@ Dokumen ini berisi rancangan UI frontend untuk aplikasi Event Management yang me
 
 | User | Primary Needs | Main Screens |
 | --- | --- | --- |
-| Admin | Mengelola user, semua event, dan laporan global | Dashboard, Users, Events, Reports |
-| Organizer | Membuat event, melihat peserta, check-in, laporan event | Dashboard, My Events, Event Detail, Check-in |
-| Staff | Melakukan validasi tiket dan check-in peserta | Check-in Scanner, Check-in History |
-| Attendee | Melihat event, daftar event, melihat tiket | Event Catalog, My Tickets, Registration Detail |
+| Admin | Manage users, all events, and global reports | Dashboard, Users, Events, Reports |
+| Organizer | Create events, view attendees, check-in, event reports | Dashboard, My Events, Event Detail, Check-in |
+| Staff | Validate tickets and check in attendees | Check-in Scanner, Check-in History |
+| Attendee | Browse events, register, and view tickets | Event Catalog, My Tickets, Registration Detail |
 
 ---
 
@@ -57,19 +57,19 @@ App
 
 ### Desktop Layout
 
-- Left sidebar untuk navigasi utama.
-- Top bar untuk search, user menu, dan quick action.
-- Main content menggunakan layout tabel, form, dan dashboard metric.
-- Sidebar dapat collapse agar ruang tabel lebih luas.
+- Left sidebar for primary navigation.
+- Top bar for search, user menu, and quick actions.
+- Main content in table/form/dashboard layout.
+- Collapsible sidebar for wider data tables.
 
 ### Mobile Layout
 
-- Bottom navigation untuk fitur utama attendee.
-- Drawer menu untuk organizer/admin.
-- Table berubah menjadi card list.
-- Filter ditampilkan sebagai bottom sheet atau collapsible panel.
+- Bottom navigation for key attendee flows.
+- Drawer menu for organizer/admin.
+- Tables transformed into card lists.
+- Filters shown as bottom sheet or collapsible panel.
 
-### Navigation Items by Role
+### Navigation by Role
 
 | Role | Navigation |
 | --- | --- |
@@ -84,454 +84,220 @@ App
 
 ### 5.1 Login
 
-**Purpose:** User masuk ke aplikasi.
+Purpose: user login.
 
-**UI Components:**
-
+Components:
 - Email input
 - Password input
 - Submit button
-- Link ke Register
-- Error alert untuk credential salah
+- Register link
+- Error alert for invalid credentials
 
-**API:**
+API:
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 
-| Action | Endpoint |
-| --- | --- |
-| Login | `POST /api/auth/login` |
-| Get profile after login | `GET /api/auth/me` |
-
-**States:**
-
-- Empty form
-- Loading submit
+States:
+- Empty
+- Loading
 - Validation error
-- Invalid credential
+- Invalid credentials
 - Success redirect by role
-
----
 
 ### 5.2 Register
 
-**Purpose:** Attendee atau organizer membuat akun baru.
+Purpose: attendee or organizer account creation.
 
-**UI Components:**
-
-- Full name input
-- Email input
-- Password input
-- Role selector jika diizinkan
+Components:
+- Full name
+- Email
+- Password
+- Role selector (if allowed)
 - Submit button
 
-**API:**
+API:
+- `POST /api/auth/register`
 
-| Action | Endpoint |
-| --- | --- |
-| Register | `POST /api/auth/register` |
-
-**States:**
-
+States:
 - Field validation
 - Email already used
 - Loading
-- Success redirect to login or dashboard
-
----
+- Success redirect
 
 ### 5.3 Event Catalog
 
-**Purpose:** Attendee melihat event yang tersedia.
+Purpose: attendee event discovery.
 
-**UI Components:**
-
+Components:
 - Search input
-- Filter by category
-- Filter by date
-- Event list/card
+- Category filter
+- Date filter
+- Event list/cards
 - Pagination
 - Empty state
 
-**Event Card Content:**
-
-- Event title
-- Category
-- Date and time
-- Location
+Event card:
+- Title, category, date/time, location
 - Remaining quota
 - Status badge
-- View detail button
+- Detail button
 
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| List events | `GET /api/events` |
-| Event detail | `GET /api/events/:eventId` |
-
----
+API:
+- `GET /api/events`
+- `GET /api/events/:eventId`
 
 ### 5.4 Event Detail
 
-**Purpose:** User melihat detail event dan melakukan registrasi.
+Purpose: view event details and register.
 
-**UI Components:**
-
-- Event title
-- Date, location, category
+Components:
+- Title
+- Date/location/category
 - Capacity indicator
 - Description
 - Register button
-- Cancelled/published status banner
+- Status banner (cancelled/published)
 
-**API:**
+API:
+- `GET /api/events/:eventId`
+- `POST /api/events/:eventId/register`
 
-| Action | Endpoint |
-| --- | --- |
-| Get event detail | `GET /api/events/:eventId` |
-| Register to event | `POST /api/events/:eventId/register` |
-
-**States:**
-
-- Event available
-- Event full
+States:
+- Available
+- Full
 - Already registered
-- Event cancelled
+- Cancelled
 - Registration success
-
----
 
 ### 5.5 Organizer Dashboard
 
-**Purpose:** Organizer melihat ringkasan performa event.
+Purpose: summarize event performance.
 
-**UI Components:**
-
+Components:
 - Metric cards: total events, registrations, tickets, check-ins
 - Upcoming events table
 - Recent registrations list
 - Check-in progress chart
 - Quick action: create event
 
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| Dashboard summary | `GET /api/dashboard/summary` |
-| Event stats | `GET /api/events/:eventId/stats` |
-
----
+API:
+- `GET /api/dashboard/summary`
+- `GET /api/events/:eventId/stats`
 
 ### 5.6 Event Management List
 
-**Purpose:** Organizer mengelola event miliknya.
+Purpose: organizer event operations.
 
-**UI Components:**
-
-- Toolbar with create button
-- Search input
-- Status filter: draft, published, cancelled, archived
+Components:
+- Toolbar + create button
+- Search
+- Status filter (`draft`, `published`, `cancelled`, `archived`)
 - Events table
-- Row actions: view, edit, publish, cancel, archive
+- Row actions: view/edit/publish/cancel/archive
 
-**Table Columns:**
-
-| Column | Description |
-| --- | --- |
-| Title | Nama event |
-| Status | Draft, Published, Cancelled, Archived |
-| Date | Start date |
-| Capacity | Kuota total |
-| Registered | Jumlah peserta |
-| Actions | View, Edit, Publish, Cancel |
-
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| List events | `GET /api/events` |
-| Delete/archive event | `DELETE /api/events/:eventId` |
-| Publish event | `POST /api/events/:eventId/publish` |
-| Cancel event | `POST /api/events/:eventId/cancel` |
-
----
+API:
+- `GET /api/events`
+- `DELETE /api/events/:eventId`
+- `POST /api/events/:eventId/publish`
+- `POST /api/events/:eventId/cancel`
 
 ### 5.7 Create/Edit Event Form
 
-**Purpose:** Organizer membuat atau mengubah event.
+Purpose: create or update event data.
 
-**Form Fields:**
+Fields:
+- Title
+- Description
+- Category
+- Location
+- Start datetime
+- End datetime
+- Capacity
 
-| Field | Type | Required |
-| --- | --- | --- |
-| Title | Text input | Yes |
-| Description | Textarea | No |
-| Category | Select/input | No |
-| Location | Text input | Yes |
-| Start date/time | Date time input | Yes |
-| End date/time | Date time input | Yes |
-| Capacity | Number input | Yes |
-| Status | Read-only badge | No |
+Validation:
+- Required fields
+- End time must be after start time
+- Capacity must be positive
 
-**Actions:**
+### 5.8 Check-in Scanner
 
-- Save draft
-- Update event
-- Publish event
-- Cancel editing
+Purpose: staff validates and checks in tickets quickly.
 
-**API:**
+Components:
+- Ticket code/QR input
+- Validation result state
+- Check-in action button
+- Recent check-in history
 
-| Action | Endpoint |
-| --- | --- |
-| Create event | `POST /api/events` |
-| Update event | `PATCH /api/events/:eventId` |
+API:
+- `POST /api/check-ins/validate`
+- `POST /api/check-ins`
 
----
+### 5.9 Reports
 
-### 5.8 Attendee Registrations
+Purpose: exportable operational summaries.
 
-**Purpose:** Attendee melihat daftar event yang sudah didaftari.
-
-**UI Components:**
-
-- Registration list
-- Status badge
-- View ticket button
-- Cancel registration button jika masih boleh
-
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| My registrations | `GET /api/registrations/me` |
-| Cancel registration | `POST /api/registrations/:registrationId/cancel` |
-
----
-
-### 5.9 Ticket Detail
-
-**Purpose:** Attendee melihat tiket digital.
-
-**UI Components:**
-
-- Ticket code
-- QR code area
-- Event title
-- Date and location
-- Ticket status
-- Check-in status
-
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| Ticket detail | `GET /api/tickets/:ticketId` |
-
----
-
-### 5.10 Check-in Scanner
-
-**Purpose:** Staff/organizer memvalidasi dan check-in tiket.
-
-**UI Components:**
-
-- QR scanner area
-- Manual ticket code input
-- Validate button
-- Check-in button
-- Result panel
-- Recent check-ins list
-
-**API:**
-
-| Action | Endpoint |
-| --- | --- |
-| Validate ticket | `POST /api/check-ins/validate` |
-| Check-in ticket | `POST /api/check-ins` |
-| Event check-ins | `GET /api/events/:eventId/check-ins` |
-
-**Result States:**
-
-| State | UI Treatment |
-| --- | --- |
-| Valid | Green success panel with attendee and event detail |
-| Already checked-in | Yellow warning panel |
-| Cancelled/expired | Red danger panel |
-| Not found | Red error panel |
-
----
-
-### 5.11 Reports
-
-**Purpose:** Organizer melihat dan mengunduh laporan peserta serta check-in.
-
-**UI Components:**
-
+Components:
 - Date range filter
 - Event selector
-- Summary metrics
 - Registrations table
 - Check-ins table
-- Export CSV button
+- Export CSV action
 
-**API:**
+API:
+- `GET /api/events/:eventId/reports/registrations`
+- `GET /api/events/:eventId/reports/check-ins`
 
-| Action | Endpoint |
+---
+
+## 6. UI States & Patterns
+
+### Standard States
+
+- Loading (skeleton/spinner)
+- Empty state
+- Error state
+- Success confirmation
+- Permission denied
+
+### Status Badge Mapping
+
+| Status | Color |
 | --- | --- |
-| Registration report | `GET /api/events/:eventId/reports/registrations` |
-| Check-in report | `GET /api/events/:eventId/reports/check-ins` |
+| Draft | Gray |
+| Published | Green |
+| Cancelled | Red |
+| Archived | Neutral |
+| Pending Payment | Orange |
+| Paid | Green |
+| Failed/Expired | Red |
 
 ---
 
-## 6. Component Design
+## 7. Accessibility & UX Rules
 
-| Component | Usage |
-| --- | --- |
-| `AppShell` | Layout utama dengan sidebar/topbar |
-| `RoleBasedNav` | Navigasi berdasarkan role user |
-| `DataTable` | Tabel events, attendees, reports |
-| `StatusBadge` | Status event, ticket, registration |
-| `MetricCard` | Ringkasan angka dashboard |
-| `EventForm` | Form create/edit event |
-| `ConfirmDialog` | Publish, cancel, archive, cancel registration |
-| `EmptyState` | Data kosong pada list/table |
-| `LoadingState` | Skeleton atau spinner |
-| `ErrorAlert` | Error API dan validation error |
-| `TicketCard` | Tampilan tiket digital |
-| `CheckInResultPanel` | Hasil validasi tiket |
+- Minimum color contrast for text and status badges.
+- Full keyboard accessibility for forms and tables.
+- Meaningful labels for all inputs.
+- Clear feedback for destructive actions (cancel/archive/delete).
+- Confirmation dialogs for high-impact actions.
 
 ---
 
-## 7. Visual Style Guide
+## 8. Design System Guidelines
 
-### Tone
-
-- Clean
-- Professional
-- Operational
-- Fast to scan
-
-### Color Tokens
-
-| Token | Hex | Usage |
-| --- | --- | --- |
-| `primary` | `#2563EB` | Primary action, active navigation |
-| `success` | `#16A34A` | Valid ticket, published, checked-in |
-| `warning` | `#D97706` | Draft, already checked-in, attention |
-| `danger` | `#DC2626` | Cancelled, invalid, destructive action |
-| `neutral-900` | `#111827` | Main text |
-| `neutral-600` | `#4B5563` | Secondary text |
-| `neutral-100` | `#F3F4F6` | Page background |
-| `white` | `#FFFFFF` | Surface |
-
-### Typography
-
-| Element | Size | Weight |
-| --- | --- | --- |
-| Page title | 24px | 700 |
-| Section title | 18px | 600 |
-| Body text | 14px | 400 |
-| Table text | 14px | 400 |
-| Caption/helper | 12px | 400 |
-
-### Spacing
-
-| Token | Value |
-| --- | --- |
-| `xs` | 4px |
-| `sm` | 8px |
-| `md` | 16px |
-| `lg` | 24px |
-| `xl` | 32px |
-
-### Border Radius
-
-- Buttons: 6px
-- Inputs: 6px
-- Cards: 8px maximum
-- Dialogs: 8px
+- Base spacing scale: `4, 8, 12, 16, 24, 32`.
+- Max border radius for operational surfaces: `8px`.
+- Dense, scan-friendly tables over card-heavy layouts for admin/organizer pages.
+- Consistent button hierarchy: primary, secondary, destructive.
+- Clear icon usage for action-heavy controls.
 
 ---
 
-## 8. UX Rules
+## 9. Implementation Notes
 
-- Destructive actions seperti cancel event dan archive event wajib memakai confirmation dialog.
-- Publish event harus menampilkan validation summary jika data event belum lengkap.
-- Check-in harus menampilkan hasil validasi dengan warna dan pesan yang jelas.
-- List besar wajib menggunakan pagination.
-- Form harus menyimpan state loading dan disabled saat submit.
-- Error backend harus diterjemahkan menjadi pesan yang bisa dipahami user.
-- Empty state harus menjelaskan data yang kosong dan action berikutnya.
-- Role attendee tidak boleh melihat menu organizer/admin.
-
----
-
-## 9. Recommended Frontend Stack
-
-| Area | Recommendation |
-| --- | --- |
-| Framework | React + Vite |
-| Language | TypeScript |
-| Routing | React Router |
-| Server State | TanStack Query |
-| Forms | React Hook Form |
-| Validation | Zod |
-| Styling | Tailwind CSS |
-| Icons | Lucide React |
-| Charts | Recharts |
-| QR Display | `qrcode.react` |
-| QR Scanner | `html5-qrcode` atau browser BarcodeDetector fallback |
-
----
-
-## 10. Suggested Routes
-
-| Route | Access | Screen |
-| --- | --- | --- |
-| `/login` | Public | Login |
-| `/register` | Public | Register |
-| `/events` | Public/User | Event Catalog |
-| `/events/:eventId` | Public/User | Event Detail |
-| `/dashboard` | Organizer/Admin | Dashboard |
-| `/my-events` | Organizer | Event Management List |
-| `/my-events/new` | Organizer | Create Event |
-| `/my-events/:eventId/edit` | Organizer | Edit Event |
-| `/my-events/:eventId/attendees` | Organizer | Attendees |
-| `/check-in` | Staff/Organizer | Check-in Scanner |
-| `/registrations` | Attendee | My Registrations |
-| `/tickets/:ticketId` | Attendee | Ticket Detail |
-| `/reports` | Organizer/Admin | Reports |
-| `/users` | Admin | User Management |
-
----
-
-## 11. API Error Handling
-
-| API Error | UI Behavior |
-| --- | --- |
-| `400` Validation error | Show field-level errors if possible |
-| `401` Unauthorized | Redirect to login |
-| `403` Forbidden | Show access denied screen |
-| `404` Not found | Show empty/not found state |
-| `409` Conflict | Show warning, example: already registered |
-| `500` Server error | Show generic error with retry button |
-
----
-
-## 12. Frontend Implementation Tasks
-
-- [ ] [Frontend] Setup React + TypeScript project structure (0.40 jam)
-- [ ] [Frontend] Setup router and protected routes by role (0.40 jam)
-- [ ] [Frontend] Build `AppShell` with sidebar and topbar (0.40 jam)
-- [ ] [Frontend] Build login page connected to `POST /api/auth/login` (0.40 jam)
-- [ ] [Frontend] Build register page connected to `POST /api/auth/register` (0.40 jam)
-- [ ] [Frontend] Build event catalog connected to `GET /api/events` (0.40 jam)
-- [ ] [Frontend] Build event detail and registration action (0.40 jam)
-- [ ] [Frontend] Build organizer dashboard summary (0.40 jam)
-- [ ] [Frontend] Build event list table with actions (0.40 jam)
-- [ ] [Frontend] Build create/edit event form (0.40 jam)
-- [ ] [Frontend] Build attendee registration list (0.33 jam)
-- [ ] [Frontend] Build ticket detail with QR display (0.40 jam)
-- [ ] [Frontend] Build check-in validation screen (0.40 jam)
-- [ ] [Frontend] Build reports screen with filters (0.40 jam)
-- [ ] [Frontend] Add loading, empty, and error states for all main screens (0.40 jam)
+- Use role-aware route guards on frontend.
+- Keep API errors mapped to consistent alert/toast patterns.
+- Use optimistic UI carefully for non-critical updates.
+- For payment/check-in flows, prefer explicit polling or websocket status feedback.
+- Track key user actions for audit/debug (publish, cancel, archive, check-in).
