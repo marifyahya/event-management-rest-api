@@ -32,11 +32,12 @@ router.post('/auth/login', validate(loginUserSchema), authController.login);
 protectedRouter.get('/auth/me', authController.me);
 protectedRouter.post('/auth/logout', authController.logout);
 
-protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), userController.index);
-protectedRouter.get('/users/:id', roleAdminMiddleware, userController.show);
-protectedRouter.post('/users', roleAdminMiddleware, validate(storeUserSchema), userController.store);
-protectedRouter.patch('/users/:id', roleAdminMiddleware, validate(updateUserSchema), userController.update);
-protectedRouter.delete('/users/:id', roleAdminMiddleware, userController.destroy);
+protectedRouter.use('/users', roleAdminMiddleware);
+protectedRouter.get('/users', validate(indexUserSchema), userController.index);
+protectedRouter.get('/users/:id', userController.show);
+protectedRouter.post('/users', validate(storeUserSchema), userController.store);
+protectedRouter.patch('/users/:id', validate(updateUserSchema), userController.update);
+protectedRouter.delete('/users/:id', userController.destroy);
 
 router.use(protectedRouter);
 
