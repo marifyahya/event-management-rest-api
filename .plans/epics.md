@@ -22,30 +22,40 @@ Dokumen ini berisi epic breakdown dan sub-task implementasi untuk Event Manageme
 
 ### Epic 1: Setup & Authentication
 
-- [ ] [Database] Migration schema user: tambahkan kolom `role`, `last_login_at`, dan timestamp user (0.33 jam)
-- [ ] [Backend] Endpoint `POST /api/auth/register`: buat validator request register (0.33 jam)
-- [ ] [Backend] Endpoint `POST /api/auth/register`: simpan self-register user baru sebagai `participant` dengan password hash (0.40 jam)
-- [ ] [Backend] Endpoint `POST /api/users`: admin membuat user `admin` atau `staff` dengan password hash (0.40 jam)
-- [ ] [Backend] Endpoint `GET /api/users`: admin list user dengan filter role, status, search, dan pagination (0.40 jam)
-- [ ] [Backend] Endpoint `GET /api/users/:userId`: admin melihat detail user (0.33 jam)
-- [ ] [Backend] Endpoint `PATCH /api/users/:userId`: admin update nama, role, status, atau password user (0.40 jam)
-- [ ] [Backend] Endpoint `DELETE /api/users/:userId`: admin deactivate user tanpa menghapus data historis (0.33 jam)
-- [ ] [Backend] Endpoint `POST /api/auth/login`: validasi credential dan return token (0.40 jam)
-- [ ] [Backend] Endpoint `GET /api/auth/me`: ambil profil user login (0.33 jam)
-- [ ] [Backend] Endpoint `POST /api/auth/logout`: buat response logout (0.25 jam)
-- [ ] [Integration] Buat middleware `requireAuth` (0.33 jam)
-- [ ] [Integration] Buat middleware `requireRole` (0.33 jam)
+- [x] [Database] Migration schema user: tambahkan kolom `role`, `last_login_at`, dan timestamp user (0.33 jam)
+- [x] [Backend] Endpoint `POST /api/auth/register`: buat validator request register (0.33 jam)
+- [x] [Backend] Endpoint `POST /api/auth/register`: simpan self-register user baru sebagai `participant` dengan password hash (0.40 jam)
+- [x] [Backend] Endpoint `POST /api/users`: admin membuat user `admin` atau `staff` dengan password hash (0.40 jam)
+- [x] [Backend] Endpoint `GET /api/users`: admin list user dengan filter role, status, search, dan pagination (0.40 jam)
+- [x] [Backend] Endpoint `GET /api/users/:userId`: admin melihat detail user (0.33 jam)
+- [x] [Backend] Endpoint `PATCH /api/users/:userId`: admin update nama, role, status, atau password user (0.40 jam)
+- [x] [Backend] Endpoint `DELETE /api/users/:userId`: admin deactivate user tanpa menghapus data historis (0.33 jam)
+- [x] [Backend] Endpoint `POST /api/auth/login`: validasi credential dan return token (0.40 jam)
+- [x] [Backend] Endpoint `GET /api/auth/me`: ambil profil user login (0.33 jam)
+- [x] [Backend] Endpoint `POST /api/auth/logout`: buat response logout (0.25 jam)
+- [x] [Integration] Buat middleware `requireAuth` (0.33 jam)
+- [x] [Integration] Buat middleware `requireRole` (0.33 jam)
 
 ### Epic 2: Manajemen Event
 
-- [ ] [Database] Migration schema event: buat table `events` (0.40 jam)
-- [ ] [Backend] Endpoint `POST /api/events`: create event draft (0.40 jam)
-- [ ] [Backend] Endpoint `GET /api/events`: list event dengan filter dan pagination (0.40 jam)
-- [ ] [Backend] Endpoint `GET /api/events/:eventId`: detail event (0.33 jam)
-- [ ] [Backend] Endpoint `PATCH /api/events/:eventId`: update event (0.40 jam)
-- [ ] [Backend] Endpoint `DELETE /api/events/:eventId`: archive event (0.33 jam)
-- [ ] [Backend] Endpoint `POST /api/events/:eventId/publish`: publish event (0.25 jam)
-- [ ] [Backend] Endpoint `POST /api/events/:eventId/cancel`: cancel event (0.33 jam)
+- [x] [Database] Migration schema event: buat table `events` (0.40 jam)
+- [x] [Backend] Endpoint `POST /api/events`: create event draft (0.40 jam)
+- [x] [Backend] Endpoint `GET /api/events`: list event dengan filter dan pagination (0.40 jam)
+- [x] [Backend] Endpoint `GET /api/events/:eventId`: detail event (0.33 jam)
+- [x] [Backend] Endpoint `PATCH /api/events/:eventId`: update event (0.40 jam)
+- [x] [Backend] Endpoint `DELETE /api/events/:eventId`: archive event (0.33 jam)
+- [x] [Backend] Endpoint `POST /api/events/:eventId/publish`: publish event (0.25 jam)
+- [x] [Backend] Endpoint `POST /api/events/:eventId/cancel`: cancel event (0.33 jam)
+
+Status catatan saat ini:
+
+- Lifecycle endpoint yang sudah tersedia:
+  - `POST /api/events/:id/publish`
+  - `POST /api/events/:id/cancel`
+  - `POST /api/events/:id/archive`
+  - `POST /api/events/:id/move-to-draft`
+  - `DELETE /api/events/:id` (soft delete via `deletedAt`, hanya untuk status `archived`)
+- Scope saat ini belum mencakup ownership-based authorization per organizer.
 
 ### Epic 3: Pendaftaran, Pembayaran & Tiket
 
