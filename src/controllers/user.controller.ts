@@ -26,16 +26,18 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
 
 export const show = asyncHandler(async (req: Request, res: Response) => {
   const id = Number(req.params.id);
-  const user = await userService.show(id);
+  const user = await userService.findById(id);
 
   if (!user) {
     throw new NotFoundError('User not found');
   }
 
+  const { password: _password, ...safeUser } = user;
+
   res.json({
     success: true,
     message: 'User retrieved successfully',
-    data: user,
+    data: safeUser,
   });
 });
 
@@ -54,6 +56,24 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
   res.status(201).json({
     success: true,
     message: 'User created successfully',
+    data: safeUser,
+  });
+});
+
+export const update = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const user = await userService.findById(id);
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  const updatedUser = await userService.update(id, req.body);
+  const { password: _password, ...safeUser } = updatedUser;
+
+  res.json({
+    success: true,
+    message: 'User updated successfully',
     data: safeUser,
   });
 });

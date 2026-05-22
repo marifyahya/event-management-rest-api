@@ -1,6 +1,12 @@
 import { Router } from 'express';
 
-import { indexUserSchema, loginUserSchema, registerUserSchema, storeUserSchema } from '../validators/user.validator.js';
+import {
+  indexUserSchema,
+  loginUserSchema,
+  registerUserSchema,
+  storeUserSchema,
+  updateUserSchema,
+} from '../validators/user.validator.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { roleAdminMiddleware } from '../middleware/role-admin.middleware.js';
@@ -29,6 +35,7 @@ protectedRouter.post('/auth/logout', authController.logout);
 protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), userController.index);
 protectedRouter.get('/users/:id', roleAdminMiddleware, userController.show);
 protectedRouter.post('/users', roleAdminMiddleware, validate(storeUserSchema), userController.store);
+protectedRouter.patch('/users/:id', roleAdminMiddleware, validate(updateUserSchema), userController.update);
 
 router.use(protectedRouter);
 

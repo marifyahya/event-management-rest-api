@@ -57,7 +57,7 @@ Content-Type: {{contentType}}
 
 {
   "fullName": "New User",
-  "email": "newuser1@example.com",
+  "email": "newuser2@example.com",
   "password": "password",
   "role": "admin"
 }

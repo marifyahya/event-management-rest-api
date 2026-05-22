@@ -105,23 +105,6 @@ class UserService {
     };
   }
 
-  async show(id: number) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        isActive: true,
-        lastLoginAt: true,
-        createdAt: true,
-      },
-    });
-
-    return user;
-  }
-
   async store(user: { fullName: string; email: string; password: string; role?: string; isActive?: boolean }) {
     const password = await bcrypt.hash(user.password, 10);
     return prisma.user.create({
@@ -132,6 +115,22 @@ class UserService {
         role: user.role,
         isActive: user.isActive,
       },
+    });
+  }
+
+  async update(
+    id: number,
+    user: { fullName?: string; email?: string; password?: string; role?: string; isActive?: boolean },
+  ) {
+    const data = Object.fromEntries(Object.entries(user).filter(([, v]) => v !== undefined));
+
+    if (data.password) {
+      data.password = await bcrypt.hash(user.password as string, 10);
+    }
+
+    return prisma.user.update({
+      where: { id },
+      data: data,
     });
   }
 }
