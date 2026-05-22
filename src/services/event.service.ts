@@ -1,5 +1,6 @@
 import { EVENT_STATUS, EVENT_STATUS_LABEL } from '../constants/event-status.js';
 import { prisma } from '../db/index.js';
+import { NotFoundError, ValidationError } from '../utils/app-error.js';
 
 const toDate = (value: string) => new Date(value.replace(' ', 'T') + ':00');
 
@@ -136,6 +137,28 @@ class EventService {
     });
 
     return event;
+  }
+
+  async delete(id: number) {
+    const event = await prisma.event.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    if (event.status !== EVENT_STATUS.DRAFT) {
+      throw new ValidationError('Only events with draft status can be deleted');
+    }
+
+    return prisma.event.delete({
+      where: {
+        id,
+      },
+    });
   }
 }
 

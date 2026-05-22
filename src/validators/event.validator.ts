@@ -1,5 +1,4 @@
 import z from 'zod';
-import { EVENT_STATUS_VALUES } from '../constants/event-status.js';
 import { dateTimeSchema } from './common.validator.js';
 
 export const storeEventSchema = z.object({

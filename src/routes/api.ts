@@ -47,6 +47,7 @@ protectedRouter.post('/events', validate(storeEventSchema), eventController.stor
 protectedRouter.get('/events', eventController.index);
 protectedRouter.get('/events/:id', eventController.show);
 protectedRouter.patch('/events/:id', validate(updateEventSchema), eventController.update);
+protectedRouter.delete('/events/:id', eventController.destroy);
 
 router.use(protectedRouter);
 

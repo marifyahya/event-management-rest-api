@@ -76,3 +76,17 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
     data: eventUpdate,
   });
 });
+
+export const destroy = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  await eventService.delete(id);
+
+  res.json({
+    success: true,
+    message: 'Event deleted successfully',
+  });
+});
