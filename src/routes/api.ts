@@ -8,7 +8,7 @@ import {
   updateUserSchema,
 } from '../validators/user.validator.js';
 
-import { storeEventSchema } from '../validators/event.validator.js';
+import { storeEventSchema, updateEventSchema } from '../validators/event.validator.js';
 
 import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
@@ -46,6 +46,7 @@ protectedRouter.delete('/users/:id', userController.destroy);
 protectedRouter.post('/events', validate(storeEventSchema), eventController.store);
 protectedRouter.get('/events', eventController.index);
 protectedRouter.get('/events/:id', eventController.show);
+protectedRouter.patch('/events/:id', validate(updateEventSchema), eventController.update);
 
 router.use(protectedRouter);
 

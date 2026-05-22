@@ -110,6 +110,33 @@ class EventService {
 
     return event;
   }
+
+  async update(
+    id: number,
+    data: Partial<{
+      title: string;
+      description?: string;
+      category?: string;
+      location: string;
+      capacity: number;
+      startAt: string;
+      endAt: string;
+    }>,
+  ) {
+    const event = await prisma.event.update({
+      where: {
+        id,
+      },
+      data: {
+        ...data,
+        ...(data.startAt && { startAt: toDate(data.startAt) }),
+        ...(data.endAt && { endAt: toDate(data.endAt) }),
+        updatedAt: new Date(),
+      },
+    });
+
+    return event;
+  }
 }
 
 export const eventService = new EventService();

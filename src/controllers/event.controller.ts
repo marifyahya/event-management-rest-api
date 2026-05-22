@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/async-handler.js';
 import { eventService } from '../services/event.service.js';
-import { NotFoundError } from '../utils/app-error.js';
+import { ConflictError, NotFoundError } from '../utils/app-error.js';
+import { EVENT_STATUS } from '../constants/event-status.js';
 
 export const store = asyncHandler(async (req: Request, res: Response) => {
   const event = await eventService.store({ ...req.body, organizerId: req.user!.id });
@@ -49,5 +50,29 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
     success: true,
     message: 'Event retrieved successfully',
     data: event,
+  });
+});
+
+export const update = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.findById(id);
+  if (!event) {
+    throw new NotFoundError('Event not found');
+  }
+
+  if (event.status !== EVENT_STATUS.DRAFT) {
+    throw new ConflictError('Only events with draft status can be updated');
+  }
+
+  const eventUpdate = await eventService.update(id, req.body);
+
+  res.json({
+    success: true,
+    message: 'Event updated successfully',
+    data: eventUpdate,
   });
 });
