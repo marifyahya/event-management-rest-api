@@ -1,4 +1,4 @@
-import { prisma } from '../db/index.js';
+import { prisma, prismaRaw } from '../db/index.js';
 import bcrypt from 'bcrypt';
 
 class UserService {
@@ -22,6 +22,12 @@ class UserService {
 
   findById(id: number) {
     return prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
+  findByIdIncludingDeleted(id: number) {
+    return prismaRaw.user.findUnique({
       where: { id },
     });
   }
@@ -135,8 +141,9 @@ class UserService {
   }
 
   async delete(id: number) {
-    return prisma.user.delete({
+    return prisma.user.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }

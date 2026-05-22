@@ -146,10 +146,11 @@ class EventService {
       throw new ValidationError('Only events with archived status can be deleted');
     }
 
-    return prisma.event.delete({
+    return prisma.event.update({
       where: {
         id,
       },
+      data: { deletedAt: new Date(), updatedAt: new Date() },
     });
   }
 
