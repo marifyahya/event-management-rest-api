@@ -80,3 +80,9 @@ export const updateEventSchema = z.object({
       }
     }),
 });
+
+export const cancelEventSchema = z.object({
+  body: z.object({
+    reason: z.string().max(120, 'Reason must be at most 120 characters').optional(),
+  }),
+});

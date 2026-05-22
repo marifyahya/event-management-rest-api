@@ -118,3 +118,23 @@ Content-Type: {{contentType}}
 DELETE {{baseUrl}}/api/events/1
 Authorization: Bearer {{token}}
 
+### Publish event
+POST {{baseUrl}}/api/events/1/publish
+Authorization: Bearer {{token}}
+
+### Cancel event
+POST {{baseUrl}}/api/events/1/cancel
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "reason": "Due to unforeseen circumstances, we have to cancel the event."
+}
+
+### Move event to draft
+POST {{baseUrl}}/api/events/1/move-to-draft
+Authorization: Bearer {{token}}
+
+### Archive event
+POST {{baseUrl}}/api/events/1/archive
+Authorization: Bearer {{token}}

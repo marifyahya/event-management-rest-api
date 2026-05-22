@@ -1,22 +1,9 @@
 import { Router } from 'express';
-
-import {
-  indexUserSchema,
-  loginUserSchema,
-  registerUserSchema,
-  storeUserSchema,
-  updateUserSchema,
-} from '../validators/user.validator.js';
-
-import { storeEventSchema, updateEventSchema } from '../validators/event.validator.js';
-
-import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
-import { roleAdminMiddleware } from '../middleware/role-admin.middleware.js';
-
-import * as authController from '../controllers/auth.controller.js';
-import * as userController from '../controllers/user.controller.js';
-import * as eventController from '../controllers/event.controller.js';
+import authRouter from './auth.routes.js';
+import protectedAuthRouter from './protected-auth.routes.js';
+import userRouter from './user.routes.js';
+import eventRouter from './event.routes.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -30,24 +17,11 @@ router.get('/health', (_req, res) => {
   });
 });
 
-router.post('/auth/register', validate(registerUserSchema), authController.register);
-router.post('/auth/login', validate(loginUserSchema), authController.login);
+router.use('/auth', authRouter);
+protectedRouter.use('/auth', protectedAuthRouter);
 
-protectedRouter.get('/auth/me', authController.me);
-protectedRouter.post('/auth/logout', authController.logout);
-
-protectedRouter.use('/users', roleAdminMiddleware);
-protectedRouter.get('/users', validate(indexUserSchema), userController.index);
-protectedRouter.get('/users/:id', userController.show);
-protectedRouter.post('/users', validate(storeUserSchema), userController.store);
-protectedRouter.patch('/users/:id', validate(updateUserSchema), userController.update);
-protectedRouter.delete('/users/:id', userController.destroy);
-
-protectedRouter.post('/events', validate(storeEventSchema), eventController.store);
-protectedRouter.get('/events', eventController.index);
-protectedRouter.get('/events/:id', eventController.show);
-protectedRouter.patch('/events/:id', validate(updateEventSchema), eventController.update);
-protectedRouter.delete('/events/:id', eventController.destroy);
+protectedRouter.use('/users', userRouter);
+protectedRouter.use('/events', eventRouter);
 
 router.use(protectedRouter);
 

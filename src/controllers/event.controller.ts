@@ -90,3 +90,77 @@ export const destroy = asyncHandler(async (req: Request, res: Response) => {
     message: 'Event deleted successfully',
   });
 });
+
+export const publish = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.publish(id);
+
+  res.json({
+    success: true,
+    message: 'Event published successfully',
+    data: event,
+  });
+});
+
+export const cancel = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.cancel({ id, cancelReason: req.body.cancelReason });
+
+  res.json({
+    success: true,
+    message: 'Event cancelled successfully',
+    data: event,
+  });
+});
+
+export const archive = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.archive(id);
+
+  res.json({
+    success: true,
+    message: 'Event archived successfully',
+    data: event,
+  });
+});
+
+export const moveToDraft = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.moveToDraft(id);
+
+  res.json({
+    success: true,
+    message: 'Event moved to draft successfully',
+    data: event,
+  });
+});
+
+export const forceDelete = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  await eventService.delete(id);
+
+  res.json({
+    success: true,
+    message: 'Event permanently deleted successfully',
+  });
+});

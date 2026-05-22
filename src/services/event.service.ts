@@ -140,18 +140,10 @@ class EventService {
   }
 
   async delete(id: number) {
-    const event = await prisma.event.findUnique({
-      where: {
-        id,
-      },
-    });
+    const event = await this.getEventOrThrow(id);
 
-    if (!event) {
-      throw new NotFoundError('Event not found');
-    }
-
-    if (event.status !== EVENT_STATUS.DRAFT) {
-      throw new ValidationError('Only events with draft status can be deleted');
+    if (event.status !== EVENT_STATUS.ARCHIVED) {
+      throw new ValidationError('Only events with archived status can be deleted');
     }
 
     return prisma.event.delete({
@@ -159,6 +151,87 @@ class EventService {
         id,
       },
     });
+  }
+
+  async publish(id: number) {
+    const event = await this.getEventOrThrow(id);
+
+    if (event.status !== EVENT_STATUS.DRAFT) {
+      throw new ValidationError('Only events with draft status can be published');
+    }
+
+    return prisma.event.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EVENT_STATUS.PUBLISHED,
+        publishedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async cancel(event: { id: number; cancelReason: string }) {
+    const findEvent = await this.getEventOrThrow(event.id);
+
+    if (!findEvent) {
+      throw new NotFoundError('Event not found');
+    }
+
+    if (findEvent.status !== EVENT_STATUS.PUBLISHED) {
+      throw new ValidationError('Only events with published status can be cancelled');
+    }
+
+    return prisma.event.update({
+      where: {
+        id: event.id,
+      },
+      data: {
+        status: EVENT_STATUS.CANCELLED,
+        cancelReason: event.cancelReason,
+        publishedAt: null,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async archive(id: number) {
+    await this.getEventOrThrow(id);
+
+    return prisma.event.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EVENT_STATUS.ARCHIVED,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async moveToDraft(id: number) {
+    const event = await this.getEventOrThrow(id);
+
+    if (event.status !== EVENT_STATUS.CANCELLED) {
+      throw new ValidationError('Only events with cancelled status can be moved to draft');
+    }
+
+    return prisma.event.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EVENT_STATUS.DRAFT,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  private async getEventOrThrow(id: number) {
+    const event = await prisma.event.findUnique({ where: { id } });
+    if (!event) throw new NotFoundError('Event not found');
+    return event;
   }
 }
 
