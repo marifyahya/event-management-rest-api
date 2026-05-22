@@ -61,3 +61,17 @@ Content-Type: {{contentType}}
   "password": "password",
   "role": "admin"
 }
+
+### Update user (admin only)
+PATCH {{baseUrl}}/api/users/2
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "fullName": "Updated User",
+  "email": "updateduser@example.com"
+}
+
+### Delete user (admin only)
+DELETE {{baseUrl}}/api/users/2
+Authorization: Bearer {{token}}

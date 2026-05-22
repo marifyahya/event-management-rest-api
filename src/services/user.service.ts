@@ -133,6 +133,12 @@ class UserService {
       data: data,
     });
   }
+
+  async delete(id: number) {
+    return prisma.user.delete({
+      where: { id },
+    });
+  }
 }
 
 export const userService = new UserService();

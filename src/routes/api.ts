@@ -36,6 +36,7 @@ protectedRouter.get('/users', roleAdminMiddleware, validate(indexUserSchema), us
 protectedRouter.get('/users/:id', roleAdminMiddleware, userController.show);
 protectedRouter.post('/users', roleAdminMiddleware, validate(storeUserSchema), userController.store);
 protectedRouter.patch('/users/:id', roleAdminMiddleware, validate(updateUserSchema), userController.update);
+protectedRouter.delete('/users/:id', roleAdminMiddleware, userController.destroy);
 
 router.use(protectedRouter);
 

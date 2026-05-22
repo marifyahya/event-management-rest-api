@@ -77,3 +77,19 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
     data: safeUser,
   });
 });
+
+export const destroy = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const user = await userService.findById(id);
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  await userService.delete(id);
+
+  res.json({
+    success: true,
+    message: 'User deleted successfully',
+  });
+});
