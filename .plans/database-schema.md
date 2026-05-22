@@ -37,8 +37,8 @@ Menyimpan data akun untuk admin, organizer, staff, dan attendee.
 | `role` | text | not null, default `attendee` | `admin`, `organizer`, `staff`, `attendee` |
 | `is_active` | boolean | default true | Status akun |
 | `last_login_at` | timestamp | nullable | Waktu login terakhir |
-| `created_at` | timestamp | not null | Waktu dibuat |
-| `updated_at` | timestamp | not null | Waktu update terakhir |
+| `created_at` | timestamp | nullable (default now) | Waktu dibuat |
+| `updated_at` | timestamp | nullable | Waktu update terakhir |
 
 ---
 
@@ -60,8 +60,8 @@ Menyimpan data event yang dibuat oleh organizer.
 | `status` | text | not null, default `draft` | `draft`, `published`, `cancelled`, `archived` |
 | `cancel_reason` | text | nullable | Alasan pembatalan |
 | `published_at` | timestamp | nullable | Waktu publish |
-| `created_at` | timestamp | not null | Waktu dibuat |
-| `updated_at` | timestamp | not null | Waktu update terakhir |
+| `created_at` | timestamp | nullable (default now) | Waktu dibuat |
+| `updated_at` | timestamp | nullable | Waktu update terakhir |
 
 ---
 
@@ -206,6 +206,10 @@ Menyimpan riwayat check-in tiket.
 | Table | Index | Purpose |
 | --- | --- | --- |
 | `users` | `email` | Login lookup |
+| `users` | `(role, is_active, created_at DESC)` | Optimasi list user admin dengan filter role/isActive + sort terbaru |
+| `users` | `(created_at DESC)` | Optimasi list user default yang diurutkan terbaru |
+| `users` | `GIN (full_name gin_trgm_ops)` *(PostgreSQL + pg_trgm)* | Optimasi pencarian `contains` full name |
+| `users` | `GIN (email gin_trgm_ops)` *(PostgreSQL + pg_trgm)* | Optimasi pencarian `contains` email |
 | `events` | `organizer_id` | Query event milik organizer |
 | `events` | `status` | Filter event published/draft |
 | `events` | `start_at` | Sort dan filter berdasarkan tanggal |
@@ -224,6 +228,85 @@ Menyimpan riwayat check-in tiket.
 | `tickets` | `event_id` | Query tiket per event |
 | `check_ins` | `event_id` | Laporan check-in event |
 | `check_ins` | `checked_at` | Filter laporan berdasarkan tanggal |
+
+---
+
+## Audit Timestamp Decision
+
+Untuk `users` dan `events`, kolom `created_at` dan `updated_at` sengaja dibuat nullable.
+
+Alasan:
+
+- mempermudah backfill data legacy/import bertahap,
+- menghindari kegagalan insert pada data yang belum punya metadata waktu lengkap,
+- timestamp tetap bisa diisi default/otomatis di flow normal aplikasi.
+
+Catatan implementasi:
+
+- untuk data baru dari API, tetap disarankan mengisi `created_at`/`updated_at` secara konsisten,
+- query yang melakukan sorting/filter berdasarkan waktu sebaiknya mengantisipasi nilai `NULL`.
+
+---
+
+## User Query Optimization Notes
+
+Berdasarkan implementasi saat ini:
+
+- Login pakai lookup exact `email` (`findUnique`) -> index unique `email` sudah tepat.
+- List users (`getAllUser`) melakukan:
+  - filter exact: `role`, `isActive`
+  - filter contains/ILIKE-style: `fullName`, `email`
+  - sort: `createdAt desc`
+
+Index prioritas tinggi:
+
+1. BTREE komposit `users(role, is_active, created_at DESC)`
+2. BTREE `users(created_at DESC)`
+
+Index opsional (untuk search contains skala besar):
+
+1. `pg_trgm` + GIN untuk `full_name`
+2. `pg_trgm` + GIN untuk `email`
+
+Contoh SQL (PostgreSQL):
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_users_role_active_created_at
+  ON users (role, is_active, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_users_created_at_desc
+  ON users (created_at DESC);
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_users_full_name_trgm
+  ON users USING gin (full_name gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_users_email_trgm
+  ON users USING gin (email gin_trgm_ops);
+```
+
+Contoh Prisma model `User` (untuk index BTREE):
+
+```prisma
+model User {
+  id          Int       @id @default(autoincrement())
+  fullName    String    @map("full_name")
+  email       String    @unique
+  password    String
+  role        String    @default("participant")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([role, isActive, createdAt(sort: Desc)], map: "idx_users_role_active_created_at")
+  @@index([createdAt(sort: Desc)], map: "idx_users_created_at_desc")
+  @@map("users")
+}
+```
+
+Catatan: index GIN `pg_trgm` belum didukung penuh via Prisma schema DSL, jadi buat lewat SQL migration manual.
 
 ---
 

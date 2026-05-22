@@ -75,3 +75,17 @@ Content-Type: {{contentType}}
 ### Delete user (admin only)
 DELETE {{baseUrl}}/api/users/2
 Authorization: Bearer {{token}}
+
+### Event creation
+POST {{baseUrl}}/api/events
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Tech Conference 2026 version 2",
+  "description": "A conference about the latest in tech.",
+  "capacity": 300,
+  "startAt": "2026-09-15 15:00",
+  "endAt": "2026-09-15 18:00",
+  "location": "New York City"
+}

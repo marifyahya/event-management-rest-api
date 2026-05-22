@@ -7,12 +7,16 @@ import {
   storeUserSchema,
   updateUserSchema,
 } from '../validators/user.validator.js';
+
+import { storeEventSchema } from '../validators/event.validator.js';
+
 import { validate } from '../middleware/validate.middleware.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { roleAdminMiddleware } from '../middleware/role-admin.middleware.js';
 
 import * as authController from '../controllers/auth.controller.js';
 import * as userController from '../controllers/user.controller.js';
+import * as eventController from '../controllers/event.controller.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -38,6 +42,8 @@ protectedRouter.get('/users/:id', userController.show);
 protectedRouter.post('/users', validate(storeUserSchema), userController.store);
 protectedRouter.patch('/users/:id', validate(updateUserSchema), userController.update);
 protectedRouter.delete('/users/:id', userController.destroy);
+
+protectedRouter.post('/events', validate(storeEventSchema), eventController.store);
 
 router.use(protectedRouter);
 
