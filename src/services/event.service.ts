@@ -91,6 +91,25 @@ class EventService {
       },
     };
   }
+
+  async findById(id: number) {
+    const event = await prisma.event.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (event) {
+      const eventWithStatusLabel = {
+        ...event,
+        statusLabel: EVENT_STATUS_LABEL[event.status as keyof typeof EVENT_STATUS_LABEL],
+      };
+
+      return eventWithStatusLabel;
+    }
+
+    return event;
+  }
 }
 
 export const eventService = new EventService();

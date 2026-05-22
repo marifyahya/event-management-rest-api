@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/async-handler.js';
 import { eventService } from '../services/event.service.js';
+import { NotFoundError } from '../utils/app-error.js';
 
 export const store = asyncHandler(async (req: Request, res: Response) => {
   const event = await eventService.store({ ...req.body, organizerId: req.user!.id });
@@ -30,5 +31,23 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
     message: 'Events retrieved successfully',
     data: events.data,
     pagination: events.pagination,
+  });
+});
+
+export const show = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.findById(id);
+  if (!event) {
+    throw new NotFoundError('Event not found');
+  }
+
+  res.json({
+    success: true,
+    message: 'Event retrieved successfully',
+    data: event,
   });
 });

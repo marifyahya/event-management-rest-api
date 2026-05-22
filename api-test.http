@@ -94,3 +94,8 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/api/events
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
+
+### Get event by ID
+GET {{baseUrl}}/api/events/1
+Authorization: Bearer {{token}}
+Accept: {{contentType}}
