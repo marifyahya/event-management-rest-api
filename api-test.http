@@ -76,74 +76,106 @@ Content-Type: {{contentType}}
 DELETE {{baseUrl}}/api/users/2
 Authorization: Bearer {{token}}
 
-### Event creation
-POST {{baseUrl}}/api/events
+# ──────────────────────────────────────────────
+# ADMIN EVENT ROUTES  (/api/admin/events)
+# ──────────────────────────────────────────────
+
+### [Admin] Create event
+POST {{baseUrl}}/api/admin/events
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
 {
-  "title": "Tech Conference 2026 version 2",
+  "title": "Tech Conference 2026",
   "description": "A conference about the latest in tech.",
   "capacity": 300,
+  "price": 150000,
   "startAt": "2026-09-15 15:00",
   "endAt": "2026-09-15 18:00",
   "location": "New York City"
 }
 
-### Get all events
-GET {{baseUrl}}/api/events
+### [Admin] List all events
+GET {{baseUrl}}/api/admin/events
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
-### Get event by ID
-GET {{baseUrl}}/api/events/1
+### [Admin] Get event by ID
+GET {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
-### Update event
-PATCH {{baseUrl}}/api/events/1
+### [Admin] Update event (draft only)
+PATCH {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
 {
   "title": "Updated Tech Conference 2026",
-  "description": "An updated description for the tech conference.",
-  "capacity": 350,
-  "startAt": "2026-09-15 16:00",
-  "endAt": "2026-09-15 19:00",
-  "location": "San Francisco"
+  "capacity": 350
 }
 
-### Delete event
-DELETE {{baseUrl}}/api/events/1
+### [Admin] Delete event (archived only)
+DELETE {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 
-### Publish event
-POST {{baseUrl}}/api/events/1/publish
+### [Admin] Publish event
+POST {{baseUrl}}/api/admin/events/1/publish
 Authorization: Bearer {{token}}
 
-### Cancel event
-POST {{baseUrl}}/api/events/1/cancel
+### [Admin] Cancel event
+POST {{baseUrl}}/api/admin/events/1/cancel
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
 {
-  "reason": "Due to unforeseen circumstances, we have to cancel the event."
+  "cancelReason": "Due to unforeseen circumstances, we have to cancel the event."
 }
 
-### Move event to draft
-POST {{baseUrl}}/api/events/1/move-to-draft
+### [Admin] Move cancelled event to draft
+POST {{baseUrl}}/api/admin/events/1/move-to-draft
 Authorization: Bearer {{token}}
 
-### Archive event
-POST {{baseUrl}}/api/events/1/archive
+### [Admin] Archive event
+POST {{baseUrl}}/api/admin/events/1/archive
 Authorization: Bearer {{token}}
 
+# ──────────────────────────────────────────────
+# PUBLIC EVENT ROUTES  (/api/events)
+# ──────────────────────────────────────────────
 
-### Public event routes (no auth required)
+### [Public] List published events
 GET {{baseUrl}}/api/events
 Accept: {{contentType}}
 
-### Get published event by ID
+### [Public] Get published event by ID
 GET {{baseUrl}}/api/events/3
 Accept: {{contentType}}
+
+### [Public] Register for event (auth required)
+POST {{baseUrl}}/api/events/3/register
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "quantity": 1
+}
+
+# ──────────────────────────────────────────────
+# PAYMENT ROUTES
+# ──────────────────────────────────────────────
+
+### [Webhook] Midtrans payment notification
+POST {{baseUrl}}/api/payments/midtrans/webhook
+Content-Type: {{contentType}}
+
+{
+  "order_id": "mock-order-id",
+  "transaction_status": "settlement",
+  "fraud_status": "accept",
+  "payment_type": "credit_card",
+  "transaction_id": "trx-12345",
+  "status_code": "200",
+  "gross_amount": "150000",
+  "signature_key": "mock-signature"
+}

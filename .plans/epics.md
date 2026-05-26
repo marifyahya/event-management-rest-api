@@ -61,18 +61,18 @@ Current scope note:
 
 ### Epic 3: Registration, Payment & Ticketing
 
-- [ ] [Database] Create `registrations` table
-- [ ] [Database] Create `tickets` table
-- [ ] [Database] Create `orders` table for event payment state
-- [ ] [Database] Create `payments` table for Midtrans transactions
-- [ ] [Integration] Setup Redis ticket slot pool (counter + reservation with TTL, no DB mirror)
-- [ ] [Backend] `POST /api/events/:eventId/ticket-reservations`: validate published event/quota, atomic `DECR` slot counter in Redis, set reservation hash with TTL
-- [ ] [Integration] Setup BullMQ `create-order` queue
-- [ ] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job after slot claim
-- [ ] [Integration] `create-order` worker: create pending order + Midtrans payment
+- [x] [Database] Create `registrations` table
+- [x] [Database] Create `tickets` table
+- [x] [Database] Create `orders` table for event payment state
+- [x] [Database] Create `payments` table for Midtrans transactions
+- [x] [Integration] Setup Redis ticket slot pool (counter + reservation with TTL, no DB mirror)
+- [x] [Backend] `POST /api/events/:eventId/register`: validate published event/quota, atomic `DECR` slot counter in Redis, set reservation hash with TTL, enqueue create-order job
+- [x] [Integration] Setup BullMQ `create-order` queue
+- [x] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job after slot claim
+- [x] [Integration] `create-order` worker: create pending order + Midtrans payment
 - [ ] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
-- [ ] [Integration] `POST /api/payments/midtrans/webhook`: process callback and update order
-- [ ] [Backend] Issue digital ticket only after successful payment
+- [x] [Integration] `POST /api/payments/midtrans/webhook`: process callback and update order
+- [x] [Backend] Issue digital ticket only after successful payment
 - [ ] [Backend] `GET /api/registrations/me`: current user registrations
 - [ ] [Backend] `GET /api/events/:eventId/registrations`: event participants list
 - [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail
