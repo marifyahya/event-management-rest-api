@@ -1,0 +1,54 @@
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Redis
+    participant BullMQ
+    participant Worker
+    participant DB as PostgreSQL
+    participant Midtrans
+
+    Note over Client,Midtrans: REGISTRATION FLOW
+    Client->>API: POST /events/:id/register
+    API->>Redis: DECR event:{id}:slots
+    Redis-->>API: sisa_slot (>= 0 | < 0)
+    alt sisa_slot < 0
+        API->>Redis: INCR event:{id}:slots (rollback)
+        API-->>Client: 409 SOLD OUT
+    else sisa_slot >= 0
+        API->>Redis: SET event:{id}:reservation:{uuid}<br/>{userId, eventId, status:"held"}<br/>EXPIRE 300
+        API->>BullMQ: Enqueue create-order job<br/>{reservationId, eventId, userId}
+        API-->>Client: 200 {reservationId, jobId}
+    end
+
+    Note over Client,Midtrans: WORKER: CREATE ORDER
+    BullMQ-->>Worker: Dequeue create-order job
+    Worker->>DB: BEGIN transaction
+    Worker->>DB: INSERT Registration (status:"registered")
+    Worker->>DB: INSERT Order (status:"pending", total_amount)
+    Worker->>Midtrans: POST /snap (order_id, gross_amount)
+    Midtrans-->>Worker: { snap_token, redirect_url }
+    Worker->>DB: INSERT Payment (status:"pending", snap_token)
+    Worker->>DB: COMMIT
+    Worker-->>Client: (via WS/polling) { orderId, snap_token }
+
+    Note over Client,Midtrans: MIDTRANS WEBHOOK
+    Midtrans->>API: POST /payments/midtrans/webhook
+    API->>DB: SELECT Payment WHERE provider_order_id
+    DB-->>API: Payment record
+    alt SUCCESS (settlement / capture)
+        API->>DB: UPDATE Payment → status:"settlement"
+        API->>DB: UPDATE Order → status:"paid", paidAt:now
+        API->>DB: INSERT Ticket (ticket_code, qr_token)
+        API->>Redis: DEL event:{id}:reservation:{uuid}
+    else FAILED (deny / cancel / expire / failure)
+        API->>DB: UPDATE Payment → status sesuai
+        API->>DB: UPDATE Order → status:"failed"
+        API->>Redis: INCR event:{id}:slots (release)
+        API->>Redis: DEL event:{id}:reservation:{uuid}
+    end
+    API-->>Midtrans: 200 OK
+
+    Note over Client,Midtrans: RECOVERY (Redis Restart)
+    API->>DB: SELECT events.capacity - COUNT(registrations)<br/>WHERE status != 'cancelled'
+    DB-->>API: sisa_slot
+    API->>Redis: SET event:{id}:slots = sisa_slot

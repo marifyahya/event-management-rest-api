@@ -164,3 +164,41 @@ export const forceDelete = asyncHandler(async (req: Request, res: Response) => {
     message: 'Event permanently deleted successfully',
   });
 });
+
+export const indexPublished = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit, title, category, location } = req.query;
+  const query = {
+    page: page ? Number(page) : undefined,
+    limit: limit ? Number(limit) : undefined,
+    title: title ? String(title) : undefined,
+    category: category ? String(category) : undefined,
+    location: location ? String(location) : undefined,
+  };
+
+  const events = await eventService.getAllPublishedEvent(query);
+
+  res.json({
+    success: true,
+    message: 'Published events retrieved successfully',
+    data: events.data,
+    pagination: events.pagination,
+  });
+});
+
+export const showPublished = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.findPublishedById(id);
+  if (!event) {
+    throw new NotFoundError('Event not found');
+  }
+
+  res.json({
+    success: true,
+    message: 'Published event retrieved successfully',
+    data: event,
+  });
+});

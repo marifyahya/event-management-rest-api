@@ -7,3 +7,6 @@ dist
 .plan-bioskop
 src/generated
 **/.DS_Store
+.opencode
+.idea
+.vscode

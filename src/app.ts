@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import apiRouter from './routes/api.js';
+import apiRouter from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware.js';
 import { requestLogger } from './middleware/request-logger.middleware.js';
 

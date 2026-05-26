@@ -11,13 +11,11 @@ users 1--N events
 users 1--N registrations
 users 1--N orders
 events 1--N registrations
-events 1--N ticket_slots
 events 1--N orders
 registrations 1--1 tickets
 events 1--N tickets
 orders 1--1 payments
 orders 1--N tickets
-ticket_slots 1--0..1 tickets
 tickets 1--0..1 check_ins
 users 1--N check_ins
 ```
@@ -87,31 +85,6 @@ Recommended constraint:
 
 ---
 
-## `ticket_slots`
-
-Stores final/audit mirror for limited ticket slot pool per event.
-
-| Column | Type | Constraint | Description |
-| --- | --- | --- | --- |
-| `id` | serial/integer | PK, auto increment | Slot ID |
-| `event_id` | integer | FK `events.id`, not null | Related event |
-| `slot_code` | text | not null | Internal slot code, e.g. `EVT-1-0001` |
-| `status` | text | not null, default `available` | `available`, `held`, `sold`, `released`, `expired` |
-| `reservation_id` | text/uuid | nullable | Reservation ID while held |
-| `order_id` | text/uuid | FK `orders.id`, nullable | Related order after worker processing |
-| `user_id` | integer | FK `users.id`, nullable | Slot owner user |
-| `held_until` | timestamp | nullable | Hold expiry |
-| `sold_at` | timestamp | nullable | Sold datetime |
-| `created_at` | timestamp | not null | Creation time |
-| `updated_at` | timestamp | not null | Last update time |
-
-Recommended constraints:
-- Unique index on `event_id + slot_code`
-- Partial index on `event_id + status`
-- Optional partial unique index for idempotency use cases
-
----
-
 ## `orders`
 
 Stores event ticket purchase orders.
@@ -124,7 +97,7 @@ Stores event ticket purchase orders.
 | `user_id` | integer | FK `users.id`, not null | Buyer |
 | `registration_id` | integer | FK `registrations.id`, nullable | Registration linked after order creation |
 | `status` | text | not null, default `pending` | `pending`, `paid`, `failed`, `expired`, `cancelled` |
-| `reservation_id` | text/uuid | nullable, unique | Initial reservation/job idempotency key |
+| `reservation_id` | text/uuid | nullable, unique | Initial Redis reservation idempotency key |
 | `job_id` | text | nullable | Queue job ID |
 | `quantity` | integer | not null, default 1 | Ticket quantity |
 | `subtotal_amount` | integer | not null | Price before fees |
@@ -169,7 +142,6 @@ Stores digital tickets issued after successful payment.
 | `id` | serial/integer | PK, auto increment | Ticket ID |
 | `registration_id` | integer | FK `registrations.id`, unique, not null | Related registration |
 | `order_id` | text/uuid | FK `orders.id`, nullable | Related order |
-| `slot_id` | integer | FK `ticket_slots.id`, unique, not null | Slot converted to ticket |
 | `event_id` | integer | FK `events.id`, not null | Related event |
 | `user_id` | integer | FK `users.id`, not null | Ticket owner |
 | `ticket_code` | text | not null, unique | Human-readable ticket code |
@@ -214,9 +186,6 @@ Stores ticket check-in history.
 | `events` | `start_at` | Date sorting/filtering |
 | `registrations` | `event_id` | Event participant list |
 | `registrations` | `user_id` | User registration list |
-| `ticket_slots` | `event_id, status` | Available slot claim queries |
-| `ticket_slots` | `reservation_id` | Reservation lookup |
-| `ticket_slots` | `order_id` | Order lookup |
 | `orders` | `event_id` | Order by event |
 | `orders` | `user_id` | Order by user |
 | `orders` | `status` | Order status filter |
@@ -227,6 +196,88 @@ Stores ticket check-in history.
 | `tickets` | `event_id` | Tickets by event |
 | `check_ins` | `event_id` | Event check-in reports |
 | `check_ins` | `checked_at` | Date-based check-in filters |
+
+---
+
+## Redis Slot Pool (No Database Mirror)
+
+Ticket slot competition is handled entirely in Redis — no `ticket_slots` database table.
+
+### Redis Keys
+
+| Key | Type | TTL | Description |
+| --- | --- | --- | --- |
+| `event:{eventId}:slots` | String (integer) | - | Sisa slot tersedia (counter) |
+| `event:{eventId}:reservation:{reservationId}` | Hash | 5 menit | Data reservasi (`userId`, `eventId`) |
+
+### Slot Lifecycle (Redis Only)
+
+| Status | Keterangan |
+|--------|-----------|
+| `available` | Counter `event:{eventId}:slots` |
+| `held` | Reservation dibuat dengan TTL 5 menit setelah DECR sukses |
+| `sold` | Reservation dihapus setelah payment sukses; counter tidak dikembalikan |
+| `released` | Counter INCR + reservation dihapus setelah payment gagal/expired |
+| `expired` | Otomatis via Redis TTL; counter tidak dikembalikan (dicek ulang saat claim berikutnya) |
+
+### Full Slot Competition Flow
+
+```
+POST /events/:id/register  (auth required)
+│
+├─ 1. DECR event:{id}:slots          (atomic, cek sisa slot)
+│     Jika hasil < 0 → INCR back + return SOLD OUT
+│
+├─ 2. SET event:{id}:reservation:{uuid}
+│     { userId, eventId, status: "held" }
+│     EXPIRE 300 (5 menit)
+│
+├─ 3. Enqueue create-order job (BullMQ)
+│     { reservationId, eventId, userId }
+│
+└─ Return { reservationId, jobId }
+```
+
+### Worker: create-order
+
+```
+Terima job → DB transaction:
+├─ Create Registration (status: "registered")
+├─ Create Order (status: "pending")
+├─ Call Midtrans Snap API → snap_token
+├─ Create Payment (status: "pending", snap_token, snap_redirect_url)
+└─ Return { orderId, snap_token }
+
+Frontend polling GET /orders/:orderId untuk cek status.
+```
+
+### Payment Webhook (Midtrans)
+
+```
+POST /payments/midtrans/webhook
+│
+├─ Terima notifikasi settlement/capture/deny/expire
+├─ Cari Payment via provider_order_id
+│
+├─ [SUCCESS: settlement/capture]
+│   ├─ Update Payment → status: "settlement"
+│   ├─ Update Order → status: "paid", paidAt: now
+│   ├─ Create Ticket (ticket_code, qr_token)
+│   └─ DEL reservation dari Redis
+│
+└─ [FAILED: deny/cancel/expire/failure]
+    ├─ Update Payment → status sesuai notifikasi
+    ├─ Update Order → status: "failed"
+    ├─ INCR event:{id}:slots (release slot)
+    └─ DEL reservation dari Redis
+```
+
+### Recovery on Redis Restart
+
+On startup, seed slot counters from the database:
+```
+event:{id}:slots = events.capacity - COUNT(registrations WHERE status != 'cancelled')
+```
 
 ---
 

@@ -171,17 +171,65 @@ QUEUE_EMAIL_NAME=email-notification
 
 ### Payment & Ticket Competition Rules
 
-- Midtrans is the payment provider.
-- For limited-capacity events, ticket competition uses a Redis slot pool.
-- Each ticket slot has status: `available`, `held`, `sold`, `released`, `expired`.
-- Slot claiming is atomic via Redis Lua script.
-- After a slot is claimed, API enqueues a `create-order` job with `reservationId` as idempotency key.
-- `create-order` worker creates a pending order, initializes Midtrans payment, and stores payment metadata.
-- Reservation endpoint returns `reservationId`/`jobId`; frontend polls order status.
-- Digital tickets are issued only after successful Midtrans payment callback.
-- Failed/expired payments cancel the order and release slot state.
-- Primary DB remains source of truth for order, payment, ticket, and slot audit.
-- One user cannot hold more than one active registration for the same event.
+- Midtrans adalah satu-satunya payment provider.
+- Slot competition menggunakan Redis counter — tidak ada tabel `ticket_slots` di database.
+- Redis untuk slot competition saja; DB (PostgreSQL) adalah source of truth untuk order, payment, dan ticket.
+
+#### Slot Competition Flow (Redis)
+
+```
+POST /events/:id/register
+│
+├─ 1. DECR event:{id}:slots (atomic)
+│     Jika hasil < 0 → INCR back + return SOLD OUT
+│
+├─ 2. SET event:{id}:reservation:{uuid} EXPIRE 300
+│     Reservation "held" selama 5 menit
+│
+├─ 3. Enqueue create-order job (BullMQ)
+│
+└─ Return { reservationId, jobId }
+```
+
+#### Worker create-order
+
+```
+DB transaction:
+├─ Create Registration (status: "registered")
+├─ Create Order (status: "pending", total_amount)
+├─ Call Midtrans Snap API → snap_token
+├─ Create Payment (status: "pending", snap_token)
+└─ Return orderId → frontend polling
+
+Frontend polling GET /orders/:orderId untuk cek status
+dan redirect ke snap_redirect_url.
+```
+
+#### Midtrans Webhook
+
+```
+POST /payments/midtrans/webhook
+
+[SUCCESS: settlement/capture]
+├─ Update Payment → "settlement"
+├─ Update Order → "paid", paidAt: now
+├─ Create Ticket (ticket_code, qr_token)
+└─ DEL reservation dari Redis
+
+[FAILED: deny/cancel/expire/failure]
+├─ Update Payment → status sesuai notifikasi
+├─ Update Order → "failed"
+├─ INCR event:{id}:slots (release slot)
+└─ DEL reservation dari Redis
+```
+
+#### Rules
+
+- Satu user tidak boleh memiliki lebih dari satu registrasi aktif untuk event yang sama.
+- Digital ticket (ticket_code + qr_token) hanya diterbitkan setelah payment callback sukses.
+- Failed/expired payment: slot dikembalikan via INCR dan reservation dihapus dari Redis.
+- Reservation expired otomatis via Redis TTL (5 menit).
+- Recovery Redis restart: seed ulang counter dari `events.capacity - COUNT(registrations confirmed)`.
 
 ### Email Notification Rules
 

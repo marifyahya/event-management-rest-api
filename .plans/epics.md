@@ -65,9 +65,8 @@ Current scope note:
 - [ ] [Database] Create `tickets` table
 - [ ] [Database] Create `orders` table for event payment state
 - [ ] [Database] Create `payments` table for Midtrans transactions
-- [ ] [Database] Create `ticket_slots` table as final slot audit mirror
-- [ ] [Integration] Setup Redis ticket slot pool
-- [ ] [Backend] `POST /api/events/:eventId/ticket-reservations`: validate published event/quota, claim `available` slot atomically via Redis Lua, set `held` with `reservationId` + expiry
+- [ ] [Integration] Setup Redis ticket slot pool (counter + reservation with TTL, no DB mirror)
+- [ ] [Backend] `POST /api/events/:eventId/ticket-reservations`: validate published event/quota, atomic `DECR` slot counter in Redis, set reservation hash with TTL
 - [ ] [Integration] Setup BullMQ `create-order` queue
 - [ ] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job after slot claim
 - [ ] [Integration] `create-order` worker: create pending order + Midtrans payment

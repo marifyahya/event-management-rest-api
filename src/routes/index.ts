@@ -4,6 +4,9 @@ import authRouter from './auth.routes.js';
 import protectedAuthRouter from './protected-auth.routes.js';
 import userRouter from './user.routes.js';
 import eventRouter from './event.routes.js';
+import publicEventRoutes from './public-event.routes.js';
+import registrationRoutes from './registration.routes.js';
+import paymentRoutes from './payment.routes.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -21,7 +24,10 @@ router.use('/auth', authRouter);
 protectedRouter.use('/auth', protectedAuthRouter);
 
 protectedRouter.use('/users', userRouter);
-protectedRouter.use('/events', eventRouter);
+protectedRouter.use('/admin/events', eventRouter);
+router.use('/events', publicEventRoutes);
+router.use('/events', registrationRoutes);
+router.use('/payments', paymentRoutes);
 
 router.use(protectedRouter);
 

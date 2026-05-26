@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { Prisma } from '../generated/prisma/client.js';
+import { env } from '../config/env.js';
 import { AppError } from '../utils/app-error.js';
 import { logger } from '../libs/logger.js';
 
 export const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = env.nodeEnv === 'development';
 
   // Handle Custom App Errors
   if (err instanceof AppError) {

@@ -1,6 +1,6 @@
 import { Queue } from 'bullmq';
 import { env } from '../config/env.js';
-import { redisConnection } from './redis.js';
+import { redisConnection } from '../libs/redis.js';
 
 export type CreateOrderJobData = {
   eventId: number;

@@ -1,5 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
+import { env } from '../config/env.js';
 
 const softDeleteScopedOps = new Set([
   'findMany',
@@ -13,12 +14,12 @@ const softDeleteScopedOps = new Set([
 ]);
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: env.databaseUrl,
 });
 
 const basePrisma = new PrismaClient({
   adapter,
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: env.nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
 export const prismaRaw = basePrisma;
@@ -63,7 +64,7 @@ if (!globalForPrisma.prisma) {
 
 export const db = globalForPrisma.prisma;
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.nodeEnv !== 'production') {
   globalForPrisma.prisma = db;
 }
 

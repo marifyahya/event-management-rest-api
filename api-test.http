@@ -13,7 +13,7 @@ Content-Type: {{contentType}}
 
 {
   "fullName": "Arif Yahya",
-  "email": "arifyahyaa@gmail.com",
+  "email": "arifyahya@gmail.com",
   "password": "password"
 }
 
@@ -138,3 +138,12 @@ Authorization: Bearer {{token}}
 ### Archive event
 POST {{baseUrl}}/api/events/1/archive
 Authorization: Bearer {{token}}
+
+
+### Public event routes (no auth required)
+GET {{baseUrl}}/api/events
+Accept: {{contentType}}
+
+### Get published event by ID
+GET {{baseUrl}}/api/events/3
+Accept: {{contentType}}

@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 
 import { seedUsers } from './seeds/user.seed.ts';
+import { seedEvents } from './seeds/event.seed.ts';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -14,6 +15,7 @@ const prisma = new PrismaClient({
 
 async function main() {
   await seedUsers(prisma);
+  await seedEvents(prisma);
 }
 
 main()
