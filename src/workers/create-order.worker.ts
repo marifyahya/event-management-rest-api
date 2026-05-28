@@ -39,7 +39,7 @@ const worker = new Worker<CreateOrderJobData>(
         },
       });
 
-      const orderNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const orderNumber = `INV-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       const subtotalAmount = (event?.price || 0) * quantity;
       const totalAmount = subtotalAmount;
 
