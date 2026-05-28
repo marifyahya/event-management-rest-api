@@ -1,6 +1,8 @@
 import { EVENT_STATUS, EVENT_STATUS_LABEL } from '../constants/event-status.js';
 import { prisma } from '../db/index.js';
+import { logger } from '../libs/logger.js';
 import { NotFoundError, ValidationError } from '../utils/app-error.js';
+import { slotRedisService } from './redis-slot.service.js';
 
 const toDate = (value: string) => new Date(value.replace(' ', 'T') + ':00');
 
@@ -14,6 +16,7 @@ class EventService {
     startAt: string;
     endAt: string;
     capacity: number;
+    price: number;
   }) {
     return prisma.event.create({
       data: {
@@ -26,6 +29,7 @@ class EventService {
         endAt: toDate(event.endAt),
         status: EVENT_STATUS.DRAFT,
         capacity: event.capacity,
+        price: event.price,
       },
     });
   }
@@ -120,6 +124,7 @@ class EventService {
       category?: string;
       location: string;
       capacity: number;
+      price: number;
       startAt: string;
       endAt: string;
     }>,
@@ -315,6 +320,27 @@ class EventService {
     }
 
     return event;
+  }
+
+  async seedSlotCounters() {
+    try {
+      const events = await prisma.event.findMany({
+        where: { status: EVENT_STATUS.PUBLISHED },
+        select: { id: true, capacity: true },
+      });
+
+      for (const event of events) {
+        const usedCount = await prisma.order.aggregate({
+          where: { eventId: event.id },
+          _sum: { quantity: true },
+        });
+        await slotRedisService.seedSlot(event.id, event.capacity, usedCount._sum.quantity || 0);
+      }
+
+      logger.info(`Seeded ${events.length} event slot counters`);
+    } catch (err) {
+      logger.error({ err }, 'Failed to seed slot counters');
+    }
   }
 }
 

@@ -4,6 +4,7 @@ import { env } from '../config/env.js';
 import { prisma } from '../db/index.js';
 import { redisConnection } from '../libs/redis.js';
 import { midtransService } from '../services/midtrans.service.js';
+import { REGISTRATION_STATUS, ORDER_STATUS, PAYMENT_STATUS } from '../constants/status.js';
 import type { CreateOrderJobData } from '../queues/create-order.queue.js';
 
 const worker = new Worker<CreateOrderJobData>(
@@ -34,7 +35,7 @@ const worker = new Worker<CreateOrderJobData>(
         data: {
           eventId,
           userId,
-          status: 'registered',
+          status: REGISTRATION_STATUS.REGISTERED,
         },
       });
 
@@ -48,7 +49,7 @@ const worker = new Worker<CreateOrderJobData>(
           eventId,
           userId,
           orderNumber,
-          status: 'pending',
+          status: ORDER_STATUS.PENDING,
           reservationId,
           quantity,
           subtotalAmount,
@@ -64,7 +65,7 @@ const worker = new Worker<CreateOrderJobData>(
           orderId: order.id,
           provider: 'midtrans',
           providerOrderId: order.id,
-          status: 'pending',
+          status: PAYMENT_STATUS.PENDING,
           grossAmount: order.totalAmount,
           snapToken,
           snapRedirectUrl,

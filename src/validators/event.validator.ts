@@ -7,6 +7,7 @@ export const storeEventSchema = z.object({
       title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title must be at most 100 characters'),
       description: z.string().max(500, 'Description must be at most 500 characters').optional(),
       capacity: z.number().int().min(1, 'Capacity must be at least 1'),
+      price: z.number().min(0, 'Price must be a positive number'),
       category: z.string().max(100, 'Category must be at most 100 characters').optional(),
       location: z.string().max(200, 'Location must be at most 200 characters'),
       startAt: dateTimeSchema,
@@ -53,6 +54,7 @@ export const updateEventSchema = z.object({
         .optional(),
       description: z.string().max(500, 'Description must be at most 500 characters').optional(),
       capacity: z.number().int().min(1, 'Capacity must be at least 1').optional(),
+      price: z.number().min(0, 'Price must be a positive number').optional(),
       category: z.string().max(100, 'Category must be at most 100 characters').optional(),
       location: z.string().max(200, 'Location must be at most 200 characters').optional(),
       startAt: dateTimeSchema.optional(),
@@ -84,5 +86,14 @@ export const updateEventSchema = z.object({
 export const cancelEventSchema = z.object({
   body: z.object({
     reason: z.string().max(120, 'Reason must be at most 120 characters').optional(),
+  }),
+});
+
+export const registerEventSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive('ID must be a positive integer'),
+  }),
+  body: z.object({
+    quantity: z.number().int().min(1, 'Quantity must be at least 1').max(10, 'Quantity must be at most 10'),
   }),
 });

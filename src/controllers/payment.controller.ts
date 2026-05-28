@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'node:crypto';
 import { asyncHandler } from '../utils/async-handler.js';
 import { midtransService } from '../services/midtrans.service.js';
 import { slotRedisService } from '../services/redis-slot.service.js';
 import { prisma } from '../db/index.js';
 import { logger } from '../libs/logger.js';
+import { ticketService } from '../services/ticket.service.js';
+import { ORDER_STATUS, PAYMENT_STATUS } from '../constants/status.js';
 
 export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
   const notification = await midtransService.handleNotification(req.body);
@@ -23,13 +24,26 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
     return;
   }
 
+  const order = payment.order;
+  if (!order) {
+    logger.warn({ providerOrderId }, 'Payment order not found for webhook');
+    res.json({ status: 'ok' });
+    return;
+  }
+
+  if (order.status == ORDER_STATUS.PAID) {
+    logger.info('Order has been paid');
+    res.json({ status: 'ok' });
+    return;
+  }
+
   if (transaction_status === 'settlement' || transaction_status === 'capture') {
     if (fraud_status === 'accept' || fraud_status === 'challenge') {
       await prisma.$transaction(async (tx) => {
         await tx.payment.update({
           where: { id: payment.id },
           data: {
-            status: 'settlement',
+            status: PAYMENT_STATUS.SETTLEMENT,
             paymentType: payment_type,
             providerTransactionId: transaction_id,
             rawNotification: req.body,
@@ -40,28 +54,17 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
         await tx.order.update({
           where: { id: payment.orderId },
           data: {
-            status: 'paid',
+            status: ORDER_STATUS.PAID,
             paidAt: new Date(),
           },
         });
 
-        const ticketCode = `TCK-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-        const qrToken = randomUUID();
-
-        await tx.ticket.create({
-          data: {
-            orderId: payment.orderId,
-            eventId: payment.order!.eventId,
-            userId: payment.order!.userId,
-            ticketCode,
-            qrToken,
-            status: 'active',
-          },
-        });
+        const tickets = await ticketService.generateTickets(order.id, order.eventId, order.userId, order.quantity);
+        await tx.ticket.createMany({ data: tickets });
       });
 
-      if (payment.order?.eventId && payment.order?.reservationId) {
-        await slotRedisService.deleteReservation(payment.order.eventId, payment.order.reservationId);
+      if (order.eventId && order.reservationId) {
+        await slotRedisService.deleteReservation(order.eventId, order.reservationId);
       }
     }
   } else if (['deny', 'cancel', 'expire', 'failure'].includes(transaction_status)) {
@@ -69,7 +72,7 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
       await tx.payment.update({
         where: { id: payment.id },
         data: {
-          status: transaction_status === 'expire' ? 'expired' : 'failed',
+          status: transaction_status === 'expire' ? PAYMENT_STATUS.EXPIRED : PAYMENT_STATUS.FAILED,
           paymentType: payment_type,
           providerTransactionId: transaction_id,
           rawNotification: req.body,
@@ -78,14 +81,12 @@ export const handleWebhook = asyncHandler(async (req: Request, res: Response) =>
 
       await tx.order.update({
         where: { id: payment.orderId },
-        data: { status: 'failed' },
+        data: { status: ORDER_STATUS.FAILED },
       });
     });
 
-    if (payment.order?.eventId && payment.order?.reservationId) {
-      await slotRedisService.releaseSlot(payment.order.eventId);
-      await slotRedisService.deleteReservation(payment.order.eventId, payment.order.reservationId);
-    }
+    await slotRedisService.releaseSlot(order.eventId, order.quantity);
+    await slotRedisService.deleteReservation(order.eventId, order.reservationId!);
   } else {
     logger.info({ transaction_status }, 'Unhandled transaction status');
   }

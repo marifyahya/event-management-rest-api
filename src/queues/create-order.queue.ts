@@ -6,7 +6,6 @@ export type CreateOrderJobData = {
   eventId: number;
   userId: number;
   reservationId: string;
-  slotIds: string[];
   quantity: number;
 };
 

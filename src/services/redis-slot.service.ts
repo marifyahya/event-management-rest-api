@@ -1,8 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import { redisClient } from '../libs/redis.js';
 import { ConflictError } from '../utils/app-error.js';
+import { RESERVATION_STATUS } from '../constants/status.js';
 
 class SlotRedisService {
+  private decrScript = `
+    local remaining = redis.call('DECRBY', KEYS[1], ARGV[1])
+    if remaining < 0 then
+      redis.call('INCRBY', KEYS[1], ARGV[1])
+      return -1
+    end
+    return remaining
+  `;
+
   private slotKey(eventId: number): string {
     return `event:${eventId}:slots`;
   }
@@ -15,12 +25,11 @@ class SlotRedisService {
     return `reservation:${reservationId}`;
   }
 
-  async reserveSlot(eventId: number, userId: number): Promise<{ reservationId: string }> {
+  async reserveSlot(eventId: number, userId: number, quantity: number): Promise<{ reservationId: string }> {
     const key = this.slotKey(eventId);
-    const remaining = await redisClient.decr(key);
+    const result = await redisClient.eval(this.decrScript, 1, key, String(quantity));
 
-    if (remaining < 0) {
-      await redisClient.incr(key);
+    if (Number(result) < 0) {
       throw new ConflictError('Event is sold out');
     }
 
@@ -28,7 +37,8 @@ class SlotRedisService {
     const reservationData = JSON.stringify({
       userId,
       eventId,
-      status: 'held',
+      status: RESERVATION_STATUS.HELD,
+      quantity,
     });
 
     await redisClient.setex(this.reservationKey(eventId, reservationId), 300, reservationData);
@@ -37,8 +47,8 @@ class SlotRedisService {
     return { reservationId };
   }
 
-  async releaseSlot(eventId: number): Promise<void> {
-    await redisClient.incr(this.slotKey(eventId));
+  async releaseSlot(eventId: number, quantity: number): Promise<void> {
+    await redisClient.incrby(this.slotKey(eventId), quantity);
   }
 
   async seedSlot(eventId: number, capacity: number, usedCount: number): Promise<void> {
