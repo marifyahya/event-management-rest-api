@@ -1,6 +1,16 @@
-import { Snap } from 'midtrans-client';
+import midtransClient from 'midtrans-client';
 import { createHash } from 'node:crypto';
 import { env } from '../config/env.js';
+
+type SnapInstance = {
+  createTransaction: (params: {
+    transaction_details: { order_id: string; gross_amount: number };
+  }) => Promise<{ token: string; redirect_url: string }>;
+};
+
+const SnapConstructor = midtransClient.Snap as unknown as new (
+  options: { isProduction: boolean; serverKey: string; clientKey: string },
+) => SnapInstance;
 
 type NotificationResult = {
   order_id: string;
@@ -12,10 +22,10 @@ type NotificationResult = {
 };
 
 class MidtransService {
-  private snap: Snap;
+  private snap: SnapInstance;
 
   constructor() {
-    this.snap = new Snap({
+    this.snap = new SnapConstructor({
       isProduction: env.midtransIsProduction,
       serverKey: env.midtransServerKey,
       clientKey: env.midtransClientKey,
