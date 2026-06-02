@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Worker } from 'bullmq';
 import { env } from '../config/env.js';
 import { prisma } from '../db/index.js';
-import { redisConnection } from '../queues/redis.js';
+import { redisConnection } from '../libs/redis.js';
 import type { CreateOrderJobData } from '../queues/create-order.queue.js';
 
 const worker = new Worker<CreateOrderJobData>(
@@ -44,7 +44,6 @@ worker.on('failed', (job, error) => {
 
 async function shutdown() {
   await worker.close();
-  await redisConnection.quit();
   await prisma.$disconnect();
 }
 
