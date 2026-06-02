@@ -39,10 +39,30 @@ class EventService {
     category?: string;
     location?: string;
     status?: string;
+    sortBy?: string;
+    sort?: string;
   }) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
+    const sortBy = query.sortBy || 'createdAt';
+    const sort = query.sort || 'desc';
+
+    const allowedSortBy = [
+      'id',
+      'title',
+      'category',
+      'location',
+      'startAt',
+      'endAt',
+      'price',
+      'capacity',
+      'status',
+      'createdAt',
+      'updatedAt',
+    ];
+    const validSortBy = allowedSortBy.includes(sortBy) ? sortBy : 'createdAt';
+    const validSort = sort === 'asc' ? 'asc' : 'desc';
 
     const where = {
       ...(query.title && {
@@ -72,7 +92,14 @@ class EventService {
         skip,
         take: limit,
         orderBy: {
-          createdAt: 'desc',
+          [validSortBy]: validSort,
+        },
+        include: {
+          organizer: {
+            select: {
+              fullName: true,
+            },
+          },
         },
       }),
       prisma.event.count({
@@ -99,6 +126,14 @@ class EventService {
     const event = await prisma.event.findUnique({
       where: {
         id,
+      },
+      include: {
+        organizer: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
       },
     });
 

@@ -24,7 +24,7 @@ export async function seedEvents(prisma: PrismaClient) {
       startAt: startDate,
       endAt: endDate,
       price: faker.number.int({ min: 5, max: 100 }) * 10000,
-      capacity: faker.number.int({ min: 30, max: 5000 }),
+      capacity: faker.number.int({ min: 1, max: 10 }) * 1000,
       status,
     };
 

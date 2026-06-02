@@ -15,7 +15,7 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, title, category, status } = req.query;
+  const { page, limit, title, category, status, sortBy, sort } = req.query;
   const query = {
     page: page ? Number(page) : undefined,
     limit: limit ? Number(limit) : undefined,
@@ -23,6 +23,8 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
     category: category ? String(category) : undefined,
     status: status ? String(status) : undefined,
     location: req.query.location ? String(req.query.location) : undefined,
+    sortBy: sortBy ? String(sortBy) : undefined,
+    sort: sort ? String(sort) : undefined,
   };
 
   const events = await eventService.getAllEvent(query);
@@ -162,5 +164,29 @@ export const forceDelete = asyncHandler(async (req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Event permanently deleted successfully',
+  });
+});
+
+export const publicEventList = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit, title, category, sortBy, sort } = req.query;
+  const query = {
+    page: page ? Number(page) : undefined,
+    limit: limit ? Number(limit) : undefined,
+    title: title ? String(title) : undefined,
+    category: category ? String(category) : undefined,
+    status: EVENT_STATUS.PUBLISHED,
+    location: req.query.location ? String(req.query.location) : undefined,
+    sortBy: sortBy ? String(sortBy) : undefined,
+    sort: sort ? String(sort) : 'desc',
+  };
+
+  const events = await eventService.getAllEvent(query);
+  const data = events.data.map(({ organizerId, ...rest }) => rest);
+
+  res.json({
+    success: true,
+    message: 'Events retrieved successfully',
+    data: data,
+    pagination: events.pagination,
   });
 });

@@ -77,7 +77,7 @@ DELETE {{baseUrl}}/api/users/2
 Authorization: Bearer {{token}}
 
 ### Event creation
-POST {{baseUrl}}/api/events
+POST {{baseUrl}}/api/admin/events
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
@@ -91,17 +91,17 @@ Content-Type: {{contentType}}
 }
 
 ### Get all events
-GET {{baseUrl}}/api/events
+GET {{baseUrl}}/api/admin/events
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
 ### Get event by ID
-GET {{baseUrl}}/api/events/1
+GET {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
 
 ### Update event
-PATCH {{baseUrl}}/api/events/1
+PATCH {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
@@ -115,15 +115,15 @@ Content-Type: {{contentType}}
 }
 
 ### Delete event
-DELETE {{baseUrl}}/api/events/1
+DELETE {{baseUrl}}/api/admin/events/1
 Authorization: Bearer {{token}}
 
 ### Publish event
-POST {{baseUrl}}/api/events/1/publish
+POST {{baseUrl}}/api/admin/events/1/publish
 Authorization: Bearer {{token}}
 
 ### Cancel event
-POST {{baseUrl}}/api/events/1/cancel
+POST {{baseUrl}}/api/admin/events/1/cancel
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 
@@ -132,9 +132,12 @@ Content-Type: {{contentType}}
 }
 
 ### Move event to draft
-POST {{baseUrl}}/api/events/1/move-to-draft
+POST {{baseUrl}}/api/admin/events/1/move-to-draft
 Authorization: Bearer {{token}}
 
 ### Archive event
-POST {{baseUrl}}/api/events/1/archive
+POST {{baseUrl}}/api/admin/events/1/archive
 Authorization: Bearer {{token}}
+
+### Get public events
+GET {{baseUrl}}/api/events?sortBy=price&sort=asc

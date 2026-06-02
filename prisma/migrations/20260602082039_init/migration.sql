@@ -144,6 +144,9 @@ CREATE INDEX "tickets_ticket_code_idx" ON "tickets"("ticket_code");
 CREATE INDEX "tickets_qr_token_idx" ON "tickets"("qr_token");
 
 -- AddForeignKey
+ALTER TABLE "events" ADD CONSTRAINT "events_organizer_id_fkey" FOREIGN KEY ("organizer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "orders" ADD CONSTRAINT "orders_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey

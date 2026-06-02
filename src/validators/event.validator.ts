@@ -1,5 +1,6 @@
 import z from 'zod';
 import { dateTimeSchema } from './common.validator.js';
+import { EVENT_STATUS_VALUES } from '../constants/event-status.js';
 
 export const storeEventSchema = z.object({
   body: z
@@ -86,5 +87,16 @@ export const updateEventSchema = z.object({
 export const cancelEventSchema = z.object({
   body: z.object({
     reason: z.string().max(120, 'Reason must be at most 120 characters').optional(),
+  }),
+});
+
+export const eventListSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().max(100).positive().optional(),
+    title: z.string().optional(),
+    category: z.string().optional(),
+    location: z.string().optional(),
+    status: z.enum(EVENT_STATUS_VALUES).optional(),
   }),
 });

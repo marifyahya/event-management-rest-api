@@ -1,13 +1,18 @@
 import { Router } from 'express';
 import { validate } from '../middleware/validate.middleware.js';
 import { idParamSchema } from '../validators/common.validator.js';
-import { cancelEventSchema, storeEventSchema, updateEventSchema } from '../validators/event.validator.js';
+import {
+  cancelEventSchema,
+  eventListSchema,
+  storeEventSchema,
+  updateEventSchema,
+} from '../validators/event.validator.js';
 import * as eventController from '../controllers/event.controller.js';
 
 const eventRouter = Router();
 
 eventRouter.post('/', validate(storeEventSchema), eventController.store);
-eventRouter.get('/', eventController.index);
+eventRouter.get('/', validate(eventListSchema), eventController.index);
 eventRouter.get('/:id', validate(idParamSchema), eventController.show);
 eventRouter.patch('/:id', validate(idParamSchema), validate(updateEventSchema), eventController.update);
 eventRouter.delete('/:id', validate(idParamSchema), eventController.destroy);

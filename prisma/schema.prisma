@@ -20,6 +20,7 @@ model User {
   deletedAt   DateTime? @map("deleted_at")
   orders      Order[]
   tickets     Ticket[]
+  events      Event[]
 
   @@map("users")
 }
@@ -43,6 +44,8 @@ model Event {
   deletedAt    DateTime? @map("deleted_at")
   orders       Order[]
   tickets      Ticket[]
+
+  organizer User @relation(fields: [organizerId], references: [id])
 
   @@map("events")
 }
