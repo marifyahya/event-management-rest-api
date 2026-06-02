@@ -7,7 +7,7 @@ This document describes the frontend UI plan for the Event Management applicatio
 ## 1. Design Goals
 
 - Deliver fast workflows for organizers to manage events, attendees, tickets, check-ins, and reports.
-- Provide a simple event registration flow for attendees.
+- Provide a simple event ordering flow for attendees.
 - Build dashboards that are easy to scan and operationally useful.
 - Ensure responsive behavior on desktop, tablet, and mobile.
 - Reduce user mistakes during publish, cancel, and check-in actions.
@@ -35,7 +35,7 @@ App
 │   └── Event Catalog
 ├── Attendee
 │   ├── Event Detail
-│   ├── My Registrations
+│   ├── My Orders
 │   └── My Tickets
 ├── Organizer
 │   ├── Dashboard
@@ -76,7 +76,7 @@ App
 | Admin | Dashboard, Users, Events, Reports, Settings |
 | Organizer | Dashboard, My Events, Check-in, Reports |
 | Staff | Check-in, Check-in History |
-| Attendee | Browse Events, My Registrations, My Tickets, Profile |
+| Attendee | Browse Events, My Orders, My Tickets, Profile |
 
 ---
 
@@ -160,7 +160,7 @@ Components:
 
 API:
 - `GET /api/events/:eventId`
-- `POST /api/events/:eventId/register`
+- `POST /api/events/:eventId/order`
 
 States:
 - Available
@@ -174,15 +174,15 @@ States:
 Purpose: summarize event performance.
 
 Components:
-- Metric cards: total events, registrations, tickets, check-ins
+- Metric cards: total events, orders, tickets, check-ins
 - Upcoming events table
-- Recent registrations list
+- Recent orders list
 - Check-in progress chart
 - Quick action: create event
 
 API:
-- `GET /api/dashboard/summary`
-- `GET /api/events/:eventId/stats`
+- `GET /api/admin/dashboard/summary`
+- `GET /api/admin/events/:eventId/stats`
 
 ### 5.6 Event Management List
 
@@ -196,10 +196,10 @@ Components:
 - Row actions: view/edit/publish/cancel/archive
 
 API:
-- `GET /api/events`
-- `DELETE /api/events/:eventId`
-- `POST /api/events/:eventId/publish`
-- `POST /api/events/:eventId/cancel`
+- `GET /api/admin/events`
+- `DELETE /api/admin/events/:eventId`
+- `POST /api/admin/events/:eventId/publish`
+- `POST /api/admin/events/:eventId/cancel`
 
 ### 5.7 Create/Edit Event Form
 
@@ -230,8 +230,8 @@ Components:
 - Recent check-in history
 
 API:
-- `POST /api/check-ins/validate`
-- `POST /api/check-ins`
+- `POST /api/admin/check-ins/validate`
+- `POST /api/admin/check-ins`
 
 ### 5.9 Reports
 
@@ -245,8 +245,8 @@ Components:
 - Export CSV action
 
 API:
-- `GET /api/events/:eventId/reports/registrations`
-- `GET /api/events/:eventId/reports/check-ins`
+- `GET /api/admin/events/:eventId/reports/attendees`
+- `GET /api/admin/events/:eventId/reports/check-ins`
 
 ---
 

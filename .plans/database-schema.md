@@ -8,18 +8,15 @@ This document describes the database schema plan for the Event Management REST A
 
 ```text
 users 1--N events
-users 1--N registrations
 users 1--N orders
-events 1--N registrations
-events 1--N ticket_slots
+users 1--N tickets
+users 1--N check_ins
 events 1--N orders
-registrations 1--1 tickets
 events 1--N tickets
 orders 1--1 payments
 orders 1--N tickets
-ticket_slots 1--0..1 tickets
 tickets 1--0..1 check_ins
-users 1--N check_ins
+events 1--N check_ins
 ```
 
 ---
@@ -57,6 +54,7 @@ Stores event data created by organizers.
 | `location` | text | not null | Event location |
 | `start_at` | timestamp | not null | Start datetime |
 | `end_at` | timestamp | not null | End datetime |
+| `price` | integer | not null, default 0 | Ticket price |
 | `capacity` | integer | not null | Participant capacity |
 | `status` | text | not null, default `draft` | `draft`, `published`, `cancelled`, `archived` |
 | `cancel_reason` | text | nullable | Cancellation reason |
@@ -64,51 +62,6 @@ Stores event data created by organizers.
 | `created_at` | timestamp | nullable (default now) | Creation time |
 | `updated_at` | timestamp | nullable | Last update time |
 | `deleted_at` | timestamp | nullable | Soft delete marker |
-
----
-
-## `registrations`
-
-Stores user registrations to events.
-
-| Column | Type | Constraint | Description |
-| --- | --- | --- | --- |
-| `id` | serial/integer | PK, auto increment | Registration ID |
-| `event_id` | integer | FK `events.id`, not null | Registered event |
-| `user_id` | integer | FK `users.id`, not null | Registered attendee |
-| `status` | text | not null, default `registered` | `registered`, `cancelled`, `checked_in` |
-| `registered_at` | timestamp | not null | Registration time |
-| `cancelled_at` | timestamp | nullable | Cancellation time |
-| `created_at` | timestamp | not null | Creation time |
-| `updated_at` | timestamp | not null | Last update time |
-
-Recommended constraint:
-- Unique index on `event_id + user_id` to prevent duplicate active registration for the same event.
-
----
-
-## `ticket_slots`
-
-Stores final/audit mirror for limited ticket slot pool per event.
-
-| Column | Type | Constraint | Description |
-| --- | --- | --- | --- |
-| `id` | serial/integer | PK, auto increment | Slot ID |
-| `event_id` | integer | FK `events.id`, not null | Related event |
-| `slot_code` | text | not null | Internal slot code, e.g. `EVT-1-0001` |
-| `status` | text | not null, default `available` | `available`, `held`, `sold`, `released`, `expired` |
-| `reservation_id` | text/uuid | nullable | Reservation ID while held |
-| `order_id` | text/uuid | FK `orders.id`, nullable | Related order after worker processing |
-| `user_id` | integer | FK `users.id`, nullable | Slot owner user |
-| `held_until` | timestamp | nullable | Hold expiry |
-| `sold_at` | timestamp | nullable | Sold datetime |
-| `created_at` | timestamp | not null | Creation time |
-| `updated_at` | timestamp | not null | Last update time |
-
-Recommended constraints:
-- Unique index on `event_id + slot_code`
-- Partial index on `event_id + status`
-- Optional partial unique index for idempotency use cases
 
 ---
 
@@ -122,10 +75,7 @@ Stores event ticket purchase orders.
 | `order_number` | text | not null, unique | Human-readable order number |
 | `event_id` | integer | FK `events.id`, not null | Related event |
 | `user_id` | integer | FK `users.id`, not null | Buyer |
-| `registration_id` | integer | FK `registrations.id`, nullable | Registration linked after order creation |
 | `status` | text | not null, default `pending` | `pending`, `paid`, `failed`, `expired`, `cancelled` |
-| `reservation_id` | text/uuid | nullable, unique | Initial reservation/job idempotency key |
-| `job_id` | text | nullable | Queue job ID |
 | `quantity` | integer | not null, default 1 | Ticket quantity |
 | `subtotal_amount` | integer | not null | Price before fees |
 | `admin_fee` | integer | not null, default 0 | Admin fee |
@@ -167,9 +117,7 @@ Stores digital tickets issued after successful payment.
 | Column | Type | Constraint | Description |
 | --- | --- | --- | --- |
 | `id` | serial/integer | PK, auto increment | Ticket ID |
-| `registration_id` | integer | FK `registrations.id`, unique, not null | Related registration |
 | `order_id` | text/uuid | FK `orders.id`, nullable | Related order |
-| `slot_id` | integer | FK `ticket_slots.id`, unique, not null | Slot converted to ticket |
 | `event_id` | integer | FK `events.id`, not null | Related event |
 | `user_id` | integer | FK `users.id`, not null | Ticket owner |
 | `ticket_code` | text | not null, unique | Human-readable ticket code |
@@ -191,7 +139,6 @@ Stores ticket check-in history.
 | `id` | serial/integer | PK, auto increment | Check-in ID |
 | `event_id` | integer | FK `events.id`, not null | Related event |
 | `ticket_id` | integer | FK `tickets.id`, unique, not null | Used ticket |
-| `registration_id` | integer | FK `registrations.id`, not null | Related registration |
 | `checked_by` | integer | FK `users.id`, not null | Staff/organizer checker |
 | `status` | text | not null, default `success` | `success`, `rejected` |
 | `notes` | text | nullable | Validation notes |
@@ -212,11 +159,6 @@ Stores ticket check-in history.
 | `events` | `organizer_id` | Organizer event queries |
 | `events` | `status` | Published/draft filtering |
 | `events` | `start_at` | Date sorting/filtering |
-| `registrations` | `event_id` | Event participant list |
-| `registrations` | `user_id` | User registration list |
-| `ticket_slots` | `event_id, status` | Available slot claim queries |
-| `ticket_slots` | `reservation_id` | Reservation lookup |
-| `ticket_slots` | `order_id` | Order lookup |
 | `orders` | `event_id` | Order by event |
 | `orders` | `user_id` | Order by user |
 | `orders` | `status` | Order status filter |

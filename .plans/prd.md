@@ -13,7 +13,7 @@ Event organizers need a centralized backend system to manage events, attendees, 
 ### Product Goals
 
 - Provide a REST API to create, manage, and publish events.
-- Support attendee registration, limited ticket competition, Midtrans payments, and digital ticket issuance.
+- Support attendee order, Midtrans payments, and digital ticket issuance.
 - Simplify check-in with ticket code or QR token validation.
 - Provide basic dashboards and reports for organizers.
 - Protect data with authentication, authorization, and request validation.
@@ -23,7 +23,7 @@ Event organizers need a centralized backend system to manage events, attendees, 
 | Persona | Primary Needs | Pain Points |
 | --- | --- | --- |
 | Event Organizer | Create events, monitor attendees, view reports | Hard to track capacity and check-in status |
-| Attendee | Register for events and receive tickets | Manual registration and poor ticket traceability |
+| Attendee | Order for events and receive tickets | Manual registration and poor ticket traceability |
 | Admin | Manage users, events, and system access | Needs consistent data and access controls |
 
 ### Core Features
@@ -31,13 +31,13 @@ Event organizers need a centralized backend system to manage events, attendees, 
 | Priority | Feature | Description |
 | --- | --- | --- |
 | High | Authentication & Authorization | Register, login, profile, role-based access |
-| High | Event Management | Event CRUD, publish, cancel, filter |
-| High | Registration & Ticketing | Event registration, ticket reservation, ticket generation, ticket view |
+| High | Event Management | Event CRUD, publish, cancel, filter, sort |
+| High | Order & Ticketing | Event order, ticket generation, ticket view |
 | High | Midtrans Payment | Create payment transactions, process webhooks, confirm tickets after success |
 | Mid | Email Notifications | Send order, payment success/failure, and ticket emails |
 | High | Check-in & Validation | Ticket validation and attendee check-in |
-| Mid | Dashboard | Event, attendee, ticket, and check-in statistics |
-| Mid | Reports | Registration and check-in reports |
+| Mid | Dashboard | Event, ticket, and check-in statistics |
+| Mid | Reports | Attendee and check-in reports |
 | Low | CSV Export | Export report data to CSV |
 
 ### Non-Functional Requirements
@@ -47,7 +47,7 @@ Event organizers need a centralized backend system to manage events, attendees, 
 | Performance | Simple API responses < 300ms, pagination for large lists |
 | Security | Password hashing, JWT/session, RBAC, login rate limiting |
 | Scalability | Domain-based module structure and migration-ready schema |
-| Reliability | DB transactions for ticket competition, payment, ticketing, and check-in |
+| Reliability | DB transactions for order, payment, ticketing, and check-in |
 | Maintainability | Consistent Zod validation and standardized error format |
 
 ---
@@ -74,7 +74,7 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 | --- | --- | --- |
 | Day 1 | Authentication | Register, login, auth middleware |
 | Day 2 | Event Management | Event schema and CRUD |
-| Day 3 | Registration & Ticketing | Registration flow and ticket transactions |
+| Day 3 | Order & Ticketing | Order flow and ticket transactions |
 | Day 4 | Payment | Midtrans transactions, webhook, payment status |
 | Day 5 | Check-in | Ticket validation and check-in |
 | Day 6 | Dashboard & Reports | Stats and reporting endpoints |
@@ -92,28 +92,28 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 | POST | `/api/auth/login` | Login user |
 | GET | `/api/auth/me` | Current user profile |
 | POST | `/api/auth/logout` | Logout user |
-| POST | `/api/events` | Create event |
-| GET | `/api/events` | List events |
-| GET | `/api/events/:eventId` | Event detail |
-| PATCH | `/api/events/:eventId` | Update event |
-| DELETE | `/api/events/:eventId` | Delete/archive event by lifecycle rule |
-| POST | `/api/events/:eventId/publish` | Publish event |
-| POST | `/api/events/:eventId/cancel` | Cancel event |
-| POST | `/api/events/:eventId/register` | Register to event |
-| POST | `/api/events/:eventId/ticket-reservations` | Claim ticket slot from pool |
-| GET | `/api/registrations/me` | My registrations |
-| GET | `/api/events/:eventId/registrations` | Event attendees |
-| POST | `/api/orders/:orderId/payments/midtrans` | Create Midtrans payment transaction |
-| POST | `/api/payments/midtrans/webhook` | Midtrans callback |
+| GET | `/api/events` | Public event list (published only) |
+| GET | `/api/events/:eventId` | Public event detail (published only) |
+| POST | `/api/events/:eventId/order` | Place order for event |
 | GET | `/api/orders/:orderId` | Order and payment status |
+| POST | `/api/payments/midtrans/webhook` | Midtrans callback |
 | GET | `/api/tickets/:ticketId` | Ticket detail |
-| POST | `/api/check-ins/validate` | Validate ticket |
-| POST | `/api/check-ins` | Check-in ticket |
-| GET | `/api/events/:eventId/check-ins` | Event check-ins |
-| GET | `/api/dashboard/summary` | Dashboard summary |
-| GET | `/api/events/:eventId/stats` | Event statistics |
-| GET | `/api/events/:eventId/reports/registrations` | Registration report |
-| GET | `/api/events/:eventId/reports/check-ins` | Check-in report |
+| POST | `/api/admin/events` | Create event |
+| GET | `/api/admin/events` | List events with filters/pagination/sort |
+| GET | `/api/admin/events/:eventId` | Event detail with organizer info |
+| PATCH | `/api/admin/events/:eventId` | Update event |
+| DELETE | `/api/admin/events/:eventId` | Delete/archive event by lifecycle rule |
+| POST | `/api/admin/events/:eventId/publish` | Publish event |
+| POST | `/api/admin/events/:eventId/cancel` | Cancel event |
+| POST | `/api/admin/events/:eventId/archive` | Archive event |
+| POST | `/api/admin/events/:eventId/move-to-draft` | Move cancelled event to draft |
+| POST | `/api/admin/check-ins/validate` | Validate ticket |
+| POST | `/api/admin/check-ins` | Check-in ticket |
+| GET | `/api/admin/events/:eventId/check-ins` | Event check-ins |
+| GET | `/api/admin/dashboard/summary` | Dashboard summary |
+| GET | `/api/admin/events/:eventId/stats` | Event statistics |
+| GET | `/api/admin/events/:eventId/reports/attendees` | Attendee report |
+| GET | `/api/admin/events/:eventId/reports/check-ins` | Check-in report |
 
 ---
 
@@ -126,7 +126,7 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 - TypeScript
 - Prisma ORM
 - PostgreSQL (primary database)
-- Redis (ticket slot pool + queue)
+- Redis (job queue)
 - BullMQ (async workers)
 - Zod (request validation)
 - dotenv (environment config)
@@ -144,7 +144,7 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 | `csv-stringify` | CSV export |
 | `midtrans-client` | Midtrans Snap/Core integration |
 | `nodemailer` or provider SDK | Email notification delivery |
-| `bullmq` + `ioredis` | Redis slot pool, order queue, payment jobs, email jobs |
+| `bullmq` + `ioredis` | Order queue, payment jobs, email jobs |
 
 ### Environment Variables
 
@@ -169,19 +169,16 @@ QUEUE_CREATE_ORDER_NAME=create-order
 QUEUE_EMAIL_NAME=email-notification
 ```
 
-### Payment & Ticket Competition Rules
+### Payment & Order Flow Rules
 
 - Midtrans is the payment provider.
-- For limited-capacity events, ticket competition uses a Redis slot pool.
-- Each ticket slot has status: `available`, `held`, `sold`, `released`, `expired`.
-- Slot claiming is atomic via Redis Lua script.
-- After a slot is claimed, API enqueues a `create-order` job with `reservationId` as idempotency key.
-- `create-order` worker creates a pending order, initializes Midtrans payment, and stores payment metadata.
-- Reservation endpoint returns `reservationId`/`jobId`; frontend polls order status.
+- Attendee places an order for an event, which enqueues a `create-order` job.
+- `create-order` worker creates a pending order and initializes a Midtrans payment.
+- Order endpoint returns order details; frontend polls order status or uses Midtrans Snap redirect.
 - Digital tickets are issued only after successful Midtrans payment callback.
-- Failed/expired payments cancel the order and release slot state.
-- Primary DB remains source of truth for order, payment, ticket, and slot audit.
-- One user cannot hold more than one active registration for the same event.
+- Failed/expired payments cancel the order.
+- Primary DB remains source of truth for order, payment, and ticket state.
+- One user cannot hold more than one active order for the same event.
 
 ### Email Notification Rules
 

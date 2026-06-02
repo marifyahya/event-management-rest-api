@@ -10,7 +10,7 @@ This document contains epic breakdown and implementation subtasks for the Event 
 | --- | --- | --- |
 | Epic 1 | Setup & Authentication | Secure API with user login and role access |
 | Epic 2 | Event Management | Organizer can manage event lifecycle |
-| Epic 3 | Registration, Payment & Ticketing | Attendees can reserve quota, pay via Midtrans, and receive tickets |
+| Epic 3 | Order, Payment & Ticketing | Attendees can order, pay via Midtrans, and receive tickets |
 | Epic 4 | Check-in & Validation | Staff can validate and check in tickets |
 | Epic 5 | Dashboard & Reporting | Organizer can view metrics and reports |
 
@@ -39,63 +39,64 @@ This document contains epic breakdown and implementation subtasks for the Event 
 ### Epic 2: Event Management
 
 - [x] [Database] Event schema migration: create `events` table
-- [x] [Backend] `POST /api/events`: create draft event
-- [x] [Backend] `GET /api/events`: list events with filters/pagination
-- [x] [Backend] `GET /api/events/:eventId`: event detail
-- [x] [Backend] `PATCH /api/events/:eventId`: update event
-- [x] [Backend] `DELETE /api/events/:eventId`: lifecycle-controlled delete
-- [x] [Backend] `POST /api/events/:eventId/publish`: publish event
-- [x] [Backend] `POST /api/events/:eventId/cancel`: cancel event
+- [x] [Database] Add `organizer` relation to Event model
+- [x] [Backend] `POST /api/admin/events`: create draft event
+- [x] [Backend] `GET /api/admin/events`: list events with filters/pagination/sort
+- [x] [Backend] `GET /api/admin/events/:eventId`: event detail with organizer info
+- [x] [Backend] `PATCH /api/admin/events/:eventId`: update event
+- [x] [Backend] `DELETE /api/admin/events/:eventId`: lifecycle-controlled delete
+- [x] [Backend] `POST /api/admin/events/:eventId/publish`: publish event
+- [x] [Backend] `POST /api/admin/events/:eventId/cancel`: cancel event
+- [x] [Backend] `POST /api/admin/events/:eventId/archive`: archive event
+- [x] [Backend] `POST /api/admin/events/:eventId/move-to-draft`: move cancelled event back to draft
+- [x] [Backend] `GET /api/events`: public event list (published only) with sorting
+- [x] [Backend] `GET /api/events/:eventId`: public event detail (published only)
+- [x] [Backend] Add `sortBy`/`sort` query params with whitelist validation
 
-Current lifecycle endpoints:
+Current lifecycle:
 
-- `POST /api/events/:id/publish`
-- `POST /api/events/:id/cancel`
-- `POST /api/events/:id/archive`
-- `POST /api/events/:id/move-to-draft`
-- `DELETE /api/events/:id` (soft delete via `deletedAt`, only for `archived` events)
+- `POST /api/admin/events/:id/publish`
+- `POST /api/admin/events/:id/cancel`
+- `POST /api/admin/events/:id/archive`
+- `POST /api/admin/events/:id/move-to-draft`
+- `DELETE /api/admin/events/:id` (soft delete via `deletedAt`, only for `archived` events)
 
 Current scope note:
 
 - Ownership-based authorization (organizer-level ownership checks) is intentionally out of scope for now.
 
-### Epic 3: Registration, Payment & Ticketing
+### Epic 3: Order, Payment & Ticketing
 
-- [ ] [Database] Create `registrations` table
-- [ ] [Database] Create `tickets` table
-- [ ] [Database] Create `orders` table for event payment state
-- [ ] [Database] Create `payments` table for Midtrans transactions
-- [ ] [Database] Create `ticket_slots` table as final slot audit mirror
-- [ ] [Integration] Setup Redis ticket slot pool
-- [ ] [Backend] `POST /api/events/:eventId/ticket-reservations`: validate published event/quota, claim `available` slot atomically via Redis Lua, set `held` with `reservationId` + expiry
+- [x] [Database] Create `orders` table for event payment state
+- [x] [Database] Create `payments` table for Midtrans transactions
+- [x] [Database] Create `tickets` table
+- [x] [Integration] Setup Redis connection (`src/libs/redis.ts`)
 - [ ] [Integration] Setup BullMQ `create-order` queue
-- [ ] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job after slot claim
-- [ ] [Integration] `create-order` worker: create pending order + Midtrans payment
+- [ ] [Integration] `create-order` worker: process order creation
+- [x] [Backend] Create `order-status` constants
+- [x] [Backend] Create `payment-status` constants
+- [ ] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job
 - [ ] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
 - [ ] [Integration] `POST /api/payments/midtrans/webhook`: process callback and update order
 - [ ] [Backend] Issue digital ticket only after successful payment
-- [ ] [Backend] `GET /api/registrations/me`: current user registrations
-- [ ] [Backend] `GET /api/events/:eventId/registrations`: event participants list
 - [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail
-- [ ] [Backend] `POST /api/registrations/:registrationId/cancel`: cancel registration
 
 ### Epic 4: Check-in & Validation
 
-- [ ] [Database] Create `check_ins` table
-- [ ] [Backend] `POST /api/check-ins/validate`: validate ticket code/QR token
-- [ ] [Backend] `POST /api/check-ins`: check-in valid ticket
-- [ ] [Backend] `POST /api/check-ins`: prevent duplicate check-in
-- [ ] [Backend] `GET /api/events/:eventId/check-ins`: event check-in list
-- [ ] [Backend] `GET /api/check-ins/:checkInId`: check-in detail
+- [ ] [Database] Create `check_ins` table with relation to organizer
+- [ ] [Backend] `POST /api/admin/check-ins/validate`: validate ticket code/QR token
+- [ ] [Backend] `POST /api/admin/check-ins`: check-in valid ticket (with duplicate prevention)
+- [ ] [Backend] `GET /api/admin/events/:eventId/check-ins`: event check-in list
+- [ ] [Backend] `GET /api/admin/check-ins/:checkInId`: check-in detail
 - [ ] [Integration] Restrict check-in access to organizer/staff/admin
 
 ### Epic 5: Dashboard & Reporting
 
-- [ ] [Database] Ensure aggregation-friendly indexes/relations for events, registrations, tickets, payments, check-ins
-- [ ] [Backend] `GET /api/dashboard/summary`: total events/registrations/tickets/check-ins
-- [ ] [Backend] `GET /api/events/:eventId/stats`: event statistics
-- [ ] [Backend] `GET /api/events/:eventId/reports/registrations`: attendee report
-- [ ] [Backend] `GET /api/events/:eventId/reports/check-ins`: check-in report
+- [ ] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
+- [ ] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
+- [ ] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
+- [ ] [Backend] `GET /api/admin/events/:eventId/reports/attendees`: attendee report
+- [ ] [Backend] `GET /api/admin/events/:eventId/reports/check-ins`: check-in report
 - [ ] [Integration] Add capacity and remaining quota aggregate query
 - [ ] [Integration] Add date-based report filters
 - [ ] [Backend] Add simple CSV export option
