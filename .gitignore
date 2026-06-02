@@ -4,6 +4,7 @@ dist
 *.log
 *.db
 *.db-journal
-.plan-bioskop
 src/generated
 **/.DS_Store
+.opencode
+.plans

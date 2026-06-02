@@ -14,6 +14,7 @@ class EventService {
     startAt: string;
     endAt: string;
     capacity: number;
+    price: number;
   }) {
     return prisma.event.create({
       data: {
@@ -26,6 +27,7 @@ class EventService {
         endAt: toDate(event.endAt),
         status: EVENT_STATUS.DRAFT,
         capacity: event.capacity,
+        price: event.price,
       },
     });
   }
@@ -120,6 +122,7 @@ class EventService {
       category?: string;
       location: string;
       capacity: number;
+      price: number;
       startAt: string;
       endAt: string;
     }>,

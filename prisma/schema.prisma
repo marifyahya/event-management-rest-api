@@ -18,6 +18,8 @@ model User {
   createdAt   DateTime? @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
+  orders      Order[]
+  tickets     Ticket[]
 
   @@map("users")
 }
@@ -31,6 +33,7 @@ model Event {
   location     String    @db.VarChar(120)
   startAt      DateTime  @map("start_at")
   endAt        DateTime  @map("end_at")
+  price        Int       @map("price")
   capacity     Int
   status       String    @default("draft") @db.VarChar(20)
   cancelReason String?   @map("cancel_reason") @db.VarChar(120)
@@ -38,6 +41,83 @@ model Event {
   createdAt    DateTime? @default(now()) @map("created_at")
   updatedAt    DateTime? @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
+  orders       Order[]
+  tickets      Ticket[]
 
   @@map("events")
+}
+
+model Order {
+  id             String    @id @default(uuid())
+  orderNumber    String    @unique @map("order_number")
+  eventId        Int       @map("event_id")
+  userId         Int       @map("user_id")
+  status         String    @default("pending")
+  quantity       Int       @default(1)
+  subtotalAmount Int       @map("subtotal_amount")
+  adminFee       Int       @default(0) @map("admin_fee")
+  totalAmount    Int       @map("total_amount")
+  expiresAt      DateTime? @map("expires_at")
+  paidAt         DateTime? @map("paid_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  event   Event    @relation(fields: [eventId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  payment Payment?
+  tickets Ticket[]
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("orders")
+}
+
+model Payment {
+  id                    String    @id @default(uuid())
+  orderId               String    @unique @map("order_id")
+  provider              String    @default("midtrans")
+  providerOrderId       String    @unique @map("provider_order_id")
+  providerTransactionId String?   @map("provider_transaction_id")
+  paymentType           String?   @map("payment_type")
+  status                String    @default("pending")
+  grossAmount           Int       @map("gross_amount")
+  snapToken             String?   @map("snap_token")
+  snapRedirectUrl       String?   @map("snap_redirect_url")
+  rawNotification       Json?     @map("raw_notification")
+  paidAt                DateTime? @map("paid_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([providerOrderId])
+  @@map("payments")
+}
+
+model Ticket {
+  id         Int       @id @default(autoincrement())
+  orderId    String    @map("order_id")
+  eventId    Int       @map("event_id")
+  userId     Int       @map("user_id")
+  ticketCode String    @unique @map("ticket_code")
+  qrToken    String    @unique @map("qr_token")
+  status     String    @default("valid")
+  issuedAt   DateTime  @default(now()) @map("issued_at")
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([ticketCode])
+  @@index([qrToken])
+  @@map("tickets")
 }
