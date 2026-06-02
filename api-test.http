@@ -141,3 +141,7 @@ Authorization: Bearer {{token}}
 
 ### Get public events
 GET {{baseUrl}}/api/events?sortBy=price&sort=asc
+
+### Get public events detail
+GET {{baseUrl}}/api/events/6
+

@@ -190,3 +190,23 @@ export const publicEventList = asyncHandler(async (req: Request, res: Response) 
     pagination: events.pagination,
   });
 });
+
+export const publicEventDetail = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const event = await eventService.findById(id);
+  if (!event || event.status !== EVENT_STATUS.PUBLISHED) {
+    throw new NotFoundError('Event not found');
+  }
+
+  const { organizerId, ...rest } = event;
+
+  res.json({
+    success: true,
+    message: 'Event retrieved successfully',
+    data: rest,
+  });
+});

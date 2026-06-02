@@ -7,5 +7,6 @@ import * as eventController from '../controllers/event.controller.js';
 const publicEventRoute = Router();
 
 publicEventRoute.get('/', validate(eventListSchema), eventController.publicEventList);
+publicEventRoute.get('/:id', eventController.publicEventDetail);
 
 export default publicEventRoute;
