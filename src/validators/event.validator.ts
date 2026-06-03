@@ -100,3 +100,10 @@ export const eventListSchema = z.object({
     status: z.enum(EVENT_STATUS_VALUES).optional(),
   }),
 });
+
+export const orderEventSchema = z.object({
+  body: z.object({
+    eventId: z.number(),
+    quantity: z.number().int().positive().max(6, 'Max 6 tickets per purchase'),
+  }),
+});

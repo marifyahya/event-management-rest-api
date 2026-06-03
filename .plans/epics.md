@@ -71,13 +71,14 @@ Current scope note:
 - [x] [Database] Create `payments` table for Midtrans transactions
 - [x] [Database] Create `tickets` table
 - [x] [Integration] Setup Redis connection (`src/libs/redis.ts`)
-- [ ] [Integration] Setup BullMQ `create-order` queue
-- [ ] [Integration] `create-order` worker: process order creation
+- [x] [Integration] Setup BullMQ `create-payment` and `order-expire` queues
+- [x] [Integration] `create-payment` worker: process Midtrans transaction
+- [x] [Integration] `order-expire` worker: handle order expiry and release stock
 - [x] [Backend] Create `order-status` constants
 - [x] [Backend] Create `payment-status` constants
-- [ ] [Backend] `POST /api/events/:eventId/register`: enqueue create-order job
+- [x] [Backend] `POST /api/orders`: synchronous order creation and enqueue workers
 - [ ] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
-- [ ] [Integration] `POST /api/payments/midtrans/webhook`: process callback and update order
+- [ ] [Integration] `POST /api/webhooks/midtrans`: process callback and update order
 - [ ] [Backend] Issue digital ticket only after successful payment
 - [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail
 

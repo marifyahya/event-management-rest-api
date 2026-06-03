@@ -62,7 +62,7 @@ CREATE TABLE "payments" (
     "provider" TEXT NOT NULL DEFAULT 'midtrans',
     "provider_order_id" TEXT NOT NULL,
     "provider_transaction_id" TEXT,
-    "payment_type" TEXT,
+    "payment_method" TEXT,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "gross_amount" INTEGER NOT NULL,
     "snap_token" TEXT,

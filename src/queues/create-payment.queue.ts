@@ -1,16 +1,14 @@
 import { Queue } from 'bullmq';
-import { env } from '../config/env.js';
 import { redisConnection } from '../libs/redis.js';
 
-export type CreateOrderJobData = {
-  eventId: number;
-  userId: number;
-  reservationId: string;
-  slotIds: string[];
-  quantity: number;
+export type CreatePaymentJobData = {
+  orderId: string;
+  paymentMethod: string;
 };
 
-export const createOrderQueue = new Queue<CreateOrderJobData>(env.createOrderQueueName, {
+export const CREATE_PAYMENT_QUEUE_NAME = 'create-payment';
+
+export const createPaymentQueue = new Queue<CreatePaymentJobData>(CREATE_PAYMENT_QUEUE_NAME, {
   connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,

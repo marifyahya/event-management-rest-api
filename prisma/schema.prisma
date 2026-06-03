@@ -83,7 +83,7 @@ model Payment {
   provider              String    @default("midtrans")
   providerOrderId       String    @unique @map("provider_order_id")
   providerTransactionId String?   @map("provider_transaction_id")
-  paymentType           String?   @map("payment_type")
+  paymentMethod         String?   @map("payment_method")
   status                String    @default("pending")
   grossAmount           Int       @map("gross_amount")
   snapToken             String?   @map("snap_token")

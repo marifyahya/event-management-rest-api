@@ -145,3 +145,13 @@ GET {{baseUrl}}/api/events?sortBy=price&sort=asc
 ### Get public events detail
 GET {{baseUrl}}/api/events/6
 
+### Create Order
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "eventId": 1,
+  "quantity": 2,
+  "paymentMethod": "bank_transfer"
+}

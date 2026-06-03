@@ -1,3 +1,5 @@
+import { extend } from 'zod/mini';
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
@@ -65,5 +67,11 @@ export class ForbiddenError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string = 'Conflict') {
     super(message, 409);
+  }
+}
+
+export class BadRequest extends AppError {
+  constructor(message: string = 'Bad request') {
+    super(message, 400);
   }
 }
