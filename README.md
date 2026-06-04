@@ -35,9 +35,12 @@ PORT=3000
 NODE_ENV=development
 DATABASE_URL="postgresql://event_user:event_password@localhost:5432/event_management?schema=public"
 REDIS_URL="redis://localhost:6379"
-QUEUE_CREATE_ORDER_NAME="create-order"
 JWT_SECRET="your_jwt_secret_key"
+JWT_EXPIRES_IN="1d"
 LOG_LEVEL="info"
+MIDTRANS_SERVER_KEY="your_midtrans_server_key"
+MIDTRANS_CLIENT_KEY="your_midtrans_client_key"
+MIDTRANS_IS_PRODUCTION=false
 ```
 
 Pastikan PostgreSQL database dan Redis sudah berjalan.
@@ -89,10 +92,17 @@ Server berjalan di:
 http://localhost:3000
 ```
 
-Worker create order:
+Jalankan semua worker (dalam satu terminal):
 
 ```bash
-npm run worker:create-order
+npm run workers
+```
+
+Atau jalankan worker secara terpisah:
+
+```bash
+npm run worker:create-payment
+npm run worker:order-expire
 ```
 
 Build dan production run:
@@ -109,7 +119,9 @@ npm run start
 | `npm run dev` | Run development server |
 | `npm run build` | Compile TypeScript |
 | `npm run start` | Run compiled app |
-| `npm run worker:create-order` | Run BullMQ create-order worker |
+| `npm run workers` | Run all BullMQ workers (recommended) |
+| `npm run worker:create-payment` | Run create-payment worker only |
+| `npm run worker:order-expire` | Run order-expire worker only |
 | `npm run test` | Run TypeScript build check |
 | `npm run db:generate` | Generate Prisma Client |
 | `npm run db:migrate` | Run Prisma migration |
