@@ -1,7 +1,7 @@
 import { getRedisClient } from './redis.js';
 
 /** Reservation TTL in seconds (10 minutes) */
-export const RESERVATION_TTL = 10 * 60;
+export const RESERVATION_TTL = 3 * 60;
 
 /**
  * Lua script for atomic stock reservation.
@@ -113,7 +113,7 @@ export async function reserveStock(eventId: number, orderNumber: string, quantit
  *
  * @param eventId - The event whose stock should be restored
  * @param orderNumber - The order number whose reservation to release
- * @returns `true` if stock was restored, `false` if reservation was already gone
+ * @returns `true` if stock was restored, `false` if reservation key was already gone
  */
 export async function releaseReservation(eventId: number, orderNumber: string): Promise<boolean> {
   const redis = getRedisClient();
@@ -124,6 +124,19 @@ export async function releaseReservation(eventId: number, orderNumber: string): 
   const result = await redis.eval(RELEASE_SCRIPT, 2, stockKey, reservationKey);
 
   return result === 1;
+}
+
+/**
+ * Directly restore stock by quantity without relying on the reservation key.
+ * Use as fallback when the reservation key has already expired in Redis
+ * but the stock still needs to be returned (e.g. in the order-expire worker).
+ *
+ * @param eventId - The event whose stock should be restored
+ * @param quantity - The quantity to restore
+ */
+export async function restoreStock(eventId: number, quantity: number): Promise<void> {
+  const redis = getRedisClient();
+  await redis.incrby(`event:${eventId}:stock`, quantity);
 }
 
 /**
@@ -138,12 +151,22 @@ export async function confirmReservation(orderNumber: string): Promise<void> {
 }
 
 /**
- * Initialize event stock in Redis when an event is published.
+ * Initialize event stock in Redis.
  *
  * @param eventId - The event to initialize stock for
- * @param capacity - Total ticket capacity
+ * @param stock - Stock value to set
+ * @param nx - If `true`, uses SET NX (skip if key already exists). Default: `true`
+ * @returns `true` if the key was set, `false` if skipped (nx=true and key existed)
  */
-export async function initEventStock(eventId: number, capacity: number): Promise<void> {
+export async function initEventStock(eventId: number, stock: number, nx = true): Promise<boolean> {
   const redis = getRedisClient();
-  await redis.set(`event:${eventId}:stock`, capacity);
+  const key = `event:${eventId}:stock`;
+
+  if (nx) {
+    const result = await redis.setnx(key, stock);
+    return result === 1;
+  }
+
+  await redis.set(key, stock);
+  return true;
 }

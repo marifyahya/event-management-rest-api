@@ -3,7 +3,7 @@ import { Worker } from 'bullmq';
 import { prisma } from '../db/index.js';
 import { logger } from '../libs/logger.js';
 import { redisConnection } from '../libs/redis.js';
-import { releaseReservation } from '../libs/reservation.js';
+import { releaseReservation, restoreStock } from '../libs/reservation.js';
 import { ORDER_STATUS } from '../constants/order-status.js';
 import { PAYMENT_STATUS } from '../constants/payment-status.js';
 import { ORDER_EXPIRE_QUEUE_NAME, type OrderExpireJobData } from '../queues/order-expire.queue.js';
@@ -46,12 +46,15 @@ const worker = new Worker<OrderExpireJobData>(
       }
     });
 
+    // Release reserved stock back to Redis
     const released = await releaseReservation(order.eventId, order.orderNumber);
 
     if (released) {
-      logger.info({ orderNumber: order.orderNumber, eventId: order.eventId }, 'Stock released for expired order');
+      logger.info({ orderNumber: order.orderNumber, eventId: order.eventId }, 'Stock released via reservation key');
     } else {
-      logger.warn({ orderNumber: order.orderNumber }, 'Reservation already expired or released');
+      // Reservation key already expired from Redis — restore stock directly using order quantity
+      await restoreStock(order.eventId, order.quantity);
+      logger.info({ orderNumber: order.orderNumber, quantity: order.quantity }, 'Stock restored directly (reservation key was gone)');
     }
 
     return {

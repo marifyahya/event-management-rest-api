@@ -1,5 +1,6 @@
 import { EVENT_STATUS, EVENT_STATUS_LABEL } from '../constants/event-status.js';
 import { prisma } from '../db/index.js';
+import { initEventStock } from '../libs/reservation.js';
 import { NotFoundError, ValidationError } from '../utils/app-error.js';
 
 const toDate = (value: string) => new Date(value.replace(' ', 'T') + ':00');
@@ -198,6 +199,8 @@ class EventService {
     if (event.status !== EVENT_STATUS.DRAFT) {
       throw new ValidationError('Only events with draft status can be published');
     }
+
+    await initEventStock(id, event.capacity, false);
 
     return prisma.event.update({
       where: {

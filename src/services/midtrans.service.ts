@@ -14,6 +14,7 @@ type CreateTransactionParams = {
   ticketPrice: number;
   adminFee: number;
   expiryDurationMinutes: number;
+  paymentMethod: string;
 };
 
 type SnapResponse = {
@@ -60,6 +61,7 @@ class MidtransService {
         first_name: params.customerName,
         email: params.customerEmail,
       },
+      enabled_payments: [params.paymentMethod],
       custom_expiry: {
         expiry_duration: params.expiryDurationMinutes,
         unit: 'minute',

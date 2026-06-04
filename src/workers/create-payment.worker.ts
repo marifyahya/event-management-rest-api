@@ -12,7 +12,7 @@ import { RESERVATION_TTL } from '../libs/reservation.js';
 const worker = new Worker<CreatePaymentJobData>(
   CREATE_PAYMENT_QUEUE_NAME,
   async (job) => {
-    const { orderId } = job.data;
+    const { orderId, paymentMethod } = job.data;
 
     const order = await prisma.order.findUnique({
       where: { id: orderId, status: ORDER_STATUS.PENDING },
@@ -34,6 +34,7 @@ const worker = new Worker<CreatePaymentJobData>(
       ticketPrice: order.event.price,
       adminFee: order.adminFee,
       expiryDurationMinutes: Math.ceil(RESERVATION_TTL / 60),
+      paymentMethod,
     });
 
     const payment = await prisma.payment.findUnique({
@@ -58,6 +59,7 @@ const worker = new Worker<CreatePaymentJobData>(
           snapToken: midtransResponse.token,
           snapRedirectUrl: midtransResponse.redirectUrl,
           status: PAYMENT_STATUS.PENDING,
+          paymentMethod
         },
       });
     }
