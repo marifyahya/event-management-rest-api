@@ -10,9 +10,10 @@ This document contains epic breakdown and implementation subtasks for the Event 
 | --- | --- | --- |
 | Epic 1 | Setup & Authentication | Secure API with user login and role access |
 | Epic 2 | Event Management | Organizer can manage event lifecycle |
-| Epic 3 | Order, Payment & Ticketing | Attendees can order, pay via Midtrans, and receive tickets |
+| Epic 3 | Order, Payment & Ticketing | Attendees can order, pay via Xendit/Midtrans, and receive tickets |
 | Epic 4 | Check-in & Validation | Staff can validate and check in tickets |
 | Epic 5 | Dashboard & Reporting | Organizer can view metrics and reports |
+| Epic 6 | Email Notification | Users receive email confirmation after payment and ticket issuance |
 
 ---
 
@@ -68,19 +69,20 @@ Current scope note:
 ### Epic 3: Order, Payment & Ticketing
 
 - [x] [Database] Create `orders` table for event payment state
-- [x] [Database] Create `payments` table for Midtrans transactions
+- [x] [Database] Create `payments` table for payment transactions
 - [x] [Database] Create `tickets` table
 - [x] [Integration] Setup Redis connection (`src/libs/redis.ts`)
 - [x] [Integration] Setup BullMQ `create-payment` and `order-expire` queues
-- [x] [Integration] `create-payment` worker: process Midtrans transaction
+- [x] [Integration] `create-payment` worker: process payment via active provider (Xendit/Midtrans)
 - [x] [Integration] `order-expire` worker: handle order expiry and release stock
 - [x] [Backend] Create `order-status` constants
 - [x] [Backend] Create `payment-status` constants
 - [x] [Backend] `POST /api/orders`: synchronous order creation and enqueue workers
 - [x] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
-- [ ] [Integration] `POST /api/webhooks/midtrans`: process callback and update order
-- [ ] [Backend] Issue digital ticket only after successful payment
+- [x] [Integration] `POST /api/payments/webhook`: process callback and update order (Xendit & Midtrans)
+- [x] [Backend] Issue digital ticket only after successful payment (via webhook PAID handler)
 - [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail
+- [ ] [Integration] Send payment success + ticket confirmation email after tickets are issued
 
 ### Epic 4: Check-in & Validation
 
@@ -101,3 +103,12 @@ Current scope note:
 - [ ] [Integration] Add capacity and remaining quota aggregate query
 - [ ] [Integration] Add date-based report filters
 - [ ] [Backend] Add simple CSV export option
+
+### Epic 6: Email Notification
+
+- [ ] [Integration] Setup email provider (e.g. Nodemailer + SMTP / Resend / SendGrid)
+- [ ] [Integration] Create `send-email` BullMQ queue and worker
+- [ ] [Integration] Design payment success email template (order summary + ticket list)
+- [ ] [Integration] Enqueue send-email job from `handlePaid` in `payment-webhook.service.ts`
+- [ ] [Integration] Email contains: event name, date, location, ticket codes, QR token info
+- [ ] [Integration] Handle email send failure gracefully (log error, do not block webhook response)

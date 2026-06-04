@@ -89,20 +89,20 @@ Stores event ticket purchase orders.
 
 ## `payments`
 
-Stores Midtrans payment transactions.
+Stores payment transactions from the active payment provider (Xendit or Midtrans).
 
 | Column | Type | Constraint | Description |
 | --- | --- | --- | --- |
 | `id` | text/uuid | PK | Payment ID |
 | `order_id` | text/uuid | FK `orders.id`, unique, not null | Related order |
-| `provider` | text | not null, default `midtrans` | Payment provider |
-| `provider_order_id` | text | not null, unique | Provider-side order ID |
-| `provider_transaction_id` | text | nullable | Provider transaction ID |
-| `payment_type` | text | nullable | VA, QRIS, card, etc. |
-| `status` | text | not null, default `pending` | `pending`, `settlement`, `capture`, `deny`, `cancel`, `expire`, `failure` |
+| `provider` | text | not null, default `xendit` | Active provider: `xendit`, `midtrans` |
+| `provider_order_id` | text | not null, unique | Our order number sent to provider |
+| `provider_transaction_id` | text | nullable | Provider transaction ID (from webhook, e.g. Xendit `payment_id`, Midtrans `transaction_id`) |
+| `payment_method` | text | nullable | Generic payment method key (e.g. `BCA_VA`, `GOPAY`, `QRIS`) |
+| `status` | text | not null, default `pending` | `pending`, `paid`, `deny`, `cancel`, `expire`, `failure` |
 | `gross_amount` | integer | not null | Gross payment amount |
-| `snap_token` | text | nullable | Midtrans Snap token |
-| `snap_redirect_url` | text | nullable | Midtrans Snap redirect URL |
+| `provider_token` | text | nullable | Provider token (Xendit: invoice `id`, Midtrans: Snap `token`) |
+| `checkout_url` | text | nullable | Redirect URL to provider payment page |
 | `raw_notification` | jsonb | nullable | Latest webhook payload |
 | `paid_at` | timestamp | nullable | Successful payment datetime |
 | `created_at` | timestamp | not null | Creation time |
@@ -162,7 +162,7 @@ Stores ticket check-in history.
 | `orders` | `event_id` | Order by event |
 | `orders` | `user_id` | Order by user |
 | `orders` | `status` | Order status filter |
-| `payments` | `provider_order_id` | Midtrans webhook lookup |
+| `payments` | `provider_order_id` | Webhook lookup by order number |
 | `payments` | `order_id` | Payment-order relation |
 | `tickets` | `ticket_code` | Ticket validation |
 | `tickets` | `qr_token` | QR validation |
