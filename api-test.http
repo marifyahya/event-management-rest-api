@@ -153,10 +153,10 @@ Content-Type: {{contentType}}
 {
   "eventId": 7,
   "quantity": 6,
-  "paymentMethod": "bank_transfer"
+  "paymentMethod": "bca_va"
 }
 
 ### Order Detail
-GET {{baseUrl}}/api/orders/3a4d7bb3-38fd-44e2-ade6-6de3bfd3e764
+GET {{baseUrl}}/api/orders/0407505e-802d-42e8-b772-60d00deae5c4
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}

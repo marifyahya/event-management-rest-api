@@ -86,7 +86,13 @@ Development server:
 npm run dev
 ```
 
-Server berjalan di:
+Jalankan API server dan semua worker sekaligus:
+
+```bash
+npm run dev:all
+```
+
+Server API berjalan di:
 
 ```text
 http://localhost:3000
@@ -117,6 +123,7 @@ npm run start
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Run development server |
+| `npm run dev:all` | Run both API and all workers concurrently |
 | `npm run build` | Compile TypeScript |
 | `npm run start` | Run compiled app |
 | `npm run workers` | Run all BullMQ workers (recommended) |

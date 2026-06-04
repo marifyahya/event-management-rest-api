@@ -7,7 +7,7 @@ import { ORDER_STATUS } from '../constants/order-status.js';
 import { PAYMENT_STATUS } from '../constants/payment-status.js';
 import { midtransService } from '../services/midtrans.service.js';
 import { CREATE_PAYMENT_QUEUE_NAME, type CreatePaymentJobData } from '../queues/create-payment.queue.js';
-import { RESERVATION_TTL } from '../libs/reservation.js';
+import { RESERVATION_TTL, restoreStock } from '../libs/reservation.js';
 
 const worker = new Worker<CreatePaymentJobData>(
   CREATE_PAYMENT_QUEUE_NAME,
@@ -24,18 +24,35 @@ const worker = new Worker<CreatePaymentJobData>(
       return { orderId, status: 'not_found' };
     }
 
-    const midtransResponse = await midtransService.createTransaction({
-      orderNumber: order.orderNumber,
-      grossAmount: order.totalAmount,
-      customerName: order.user.fullName,
-      customerEmail: order.user.email,
-      eventTitle: order.event.title,
-      quantity: order.quantity,
-      ticketPrice: order.event.price,
-      adminFee: order.adminFee,
-      expiryDurationMinutes: Math.ceil(RESERVATION_TTL / 60),
-      paymentMethod,
-    });
+    let midtransResponse;
+    try {
+      midtransResponse = await midtransService.createTransaction({
+        orderNumber: order.orderNumber,
+        grossAmount: order.totalAmount,
+        customerName: order.user.fullName,
+        customerEmail: order.user.email,
+        eventTitle: order.event.title,
+        quantity: order.quantity,
+        ticketPrice: order.event.price,
+        adminFee: order.adminFee,
+        expiryDurationMinutes: Math.ceil(RESERVATION_TTL / 60),
+        paymentMethod,
+      });
+    } catch (error) {
+      logger.error(
+        { orderId, err: error },
+        'Failed to create Midtrans transaction, cancelling order and releasing stock immediately',
+      );
+
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: ORDER_STATUS.CANCELLED },
+      });
+
+      await restoreStock(order.eventId, order.quantity);
+
+      throw error;
+    }
 
     const payment = await prisma.payment.findUnique({
       where: { orderId: order.id },
