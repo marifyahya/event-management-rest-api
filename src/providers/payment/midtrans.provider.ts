@@ -108,7 +108,7 @@ export class MidtransProvider implements PaymentProvider {
   }
 
   parseWebhookPayload(payload: any): WebhookParsedData {
-    const { order_id, transaction_status, fraud_status } = payload;
+    const { order_id, transaction_id, transaction_status, fraud_status } = payload;
 
     let mappedStatus: WebhookParsedData['status'] = 'PENDING';
 
@@ -129,6 +129,7 @@ export class MidtransProvider implements PaymentProvider {
     return {
       orderNumber: order_id,
       status: mappedStatus,
+      providerTransactionId: transaction_id ?? undefined,
       rawPayload: payload,
     };
   }

@@ -6,6 +6,7 @@ import userRouter from './user.routes.js';
 import eventRouter from './event.routes.js';
 import publicEventRouter from './public-event.routes.js';
 import orderRouter from './order.routes.js';
+import paymentRouter from './payment.routes.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -20,6 +21,7 @@ router.get('/health', (_req, res) => {
 });
 
 router.use('/events', publicEventRouter);
+router.use('/payments', paymentRouter);
 router.use('/auth', authRouter);
 protectedRouter.use('/auth', protectedAuthRouter);
 protectedRouter.use('/users', userRouter);

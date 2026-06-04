@@ -19,6 +19,8 @@ export type TransactionResponse = {
 export type WebhookParsedData = {
   orderNumber: string;
   status: 'PAID' | 'EXPIRED' | 'CANCELLED' | 'PENDING';
+  /** Provider-specific transaction ID, available after payment is completed. */
+  providerTransactionId?: string;
   rawPayload: any;
 };
 

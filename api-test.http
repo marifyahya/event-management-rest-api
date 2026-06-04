@@ -152,11 +152,11 @@ Content-Type: {{contentType}}
 
 {
   "eventId": 7,
-  "quantity": 6,
+  "quantity": 2,
   "paymentMethod": "BCA_VA"
 }
 
 ### Order Detail
-GET {{baseUrl}}/api/orders/0407505e-802d-42e8-b772-60d00deae5c4
+GET {{baseUrl}}/api/orders/9c23301d-2606-4a52-91cf-6771693e3f08
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}

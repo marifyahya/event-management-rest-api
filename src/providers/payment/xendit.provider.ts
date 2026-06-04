@@ -110,6 +110,8 @@ export class XenditProvider implements PaymentProvider {
       // Xendit Invoice uses external_id for our orderNumber reference
       orderNumber: payload.external_id || payload.id,
       status: mappedStatus,
+      // Xendit provides payment_id once the invoice is actually paid
+      providerTransactionId: payload.payment_id ?? undefined,
       rawPayload: payload,
     };
   }
