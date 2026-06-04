@@ -22,7 +22,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const user = await userService.findByEmail(req.body.email);
+  const user = await userService.findByEmailIncludePassword(req.body.email);
   if (!user) {
     return res.status(400).json({
       success: false,

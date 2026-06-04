@@ -54,7 +54,10 @@ const worker = new Worker<OrderExpireJobData>(
     } else {
       // Reservation key already expired from Redis — restore stock directly using order quantity
       await restoreStock(order.eventId, order.quantity);
-      logger.info({ orderNumber: order.orderNumber, quantity: order.quantity }, 'Stock restored directly (reservation key was gone)');
+      logger.info(
+        { orderNumber: order.orderNumber, quantity: order.quantity },
+        'Stock restored directly (reservation key was gone)',
+      );
     }
 
     return {

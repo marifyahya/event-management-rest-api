@@ -26,6 +26,13 @@ class UserService {
     });
   }
 
+  findByEmailIncludePassword(email: string) {
+    return prismaRaw.user.findUnique({
+      where: { email },
+      omit: { password: false },
+    });
+  }
+
   findByIdIncludingDeleted(id: number) {
     return prismaRaw.user.findUnique({
       where: { id },

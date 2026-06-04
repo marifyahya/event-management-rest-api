@@ -18,3 +18,16 @@ export const store = asyncHandler(async (req, res) => {
     data: order,
   });
 });
+
+export const show = asyncHandler(async (req, res) => {
+  const orderId = String(req.params.id);
+  const userId = Number(req.user?.id);
+
+  const order = await orderService.getOrderById(orderId, userId);
+
+  res.status(200).json({
+    success: true,
+    message: 'Order found successfully',
+    data: order,
+  });
+});

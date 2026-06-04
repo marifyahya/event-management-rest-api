@@ -77,7 +77,7 @@ Current scope note:
 - [x] [Backend] Create `order-status` constants
 - [x] [Backend] Create `payment-status` constants
 - [x] [Backend] `POST /api/orders`: synchronous order creation and enqueue workers
-- [ ] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
+- [x] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
 - [ ] [Integration] `POST /api/webhooks/midtrans`: process callback and update order
 - [ ] [Backend] Issue digital ticket only after successful payment
 - [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail

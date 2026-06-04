@@ -155,3 +155,8 @@ Content-Type: {{contentType}}
   "quantity": 6,
   "paymentMethod": "bank_transfer"
 }
+
+### Order Detail
+GET {{baseUrl}}/api/orders/3a4d7bb3-38fd-44e2-ade6-6de3bfd3e764
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}

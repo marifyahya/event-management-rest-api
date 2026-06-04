@@ -59,7 +59,7 @@ const worker = new Worker<CreatePaymentJobData>(
           snapToken: midtransResponse.token,
           snapRedirectUrl: midtransResponse.redirectUrl,
           status: PAYMENT_STATUS.PENDING,
-          paymentMethod
+          paymentMethod,
         },
       });
     }

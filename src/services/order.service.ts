@@ -61,10 +61,10 @@ class OrderService {
     });
 
     try {
-      await createPaymentQueue.add(
-        `payment-${order.orderNumber}`,
-        { orderId: order.id, paymentMethod: requestOrder.paymentMethod },
-      );
+      await createPaymentQueue.add(`payment-${order.orderNumber}`, {
+        orderId: order.id,
+        paymentMethod: requestOrder.paymentMethod,
+      });
 
       await orderExpireQueue.add(
         `expire-${order.orderNumber}`,
@@ -87,6 +87,26 @@ class OrderService {
       ]);
 
       throw new BadRequest('Failed to process order, please try again');
+    }
+
+    return order;
+  }
+
+  async getOrderById(orderId: string, userId: number) {
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderId,
+        userId,
+      },
+      include: {
+        payment: true,
+        event: true,
+        user: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
     }
 
     return order;
