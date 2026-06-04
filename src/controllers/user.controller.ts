@@ -32,12 +32,10 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
     throw new NotFoundError('User not found');
   }
 
-  const { password: _password, ...safeUser } = user;
-
   res.json({
     success: true,
     message: 'User retrieved successfully',
-    data: safeUser,
+    data: user,
   });
 });
 
@@ -51,12 +49,10 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const user = await userService.store(req.body);
-  const { password: _password, ...safeUser } = user;
-
   res.status(201).json({
     success: true,
     message: 'User created successfully',
-    data: safeUser,
+    data: user,
   });
 });
 
@@ -69,12 +65,10 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const updatedUser = await userService.update(id, req.body);
-  const { password: _password, ...safeUser } = updatedUser;
-
   res.json({
     success: true,
     message: 'User updated successfully',
-    data: safeUser,
+    data: updatedUser,
   });
 });
 

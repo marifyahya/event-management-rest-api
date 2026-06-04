@@ -1,7 +1,9 @@
 import { getRedisClient } from './redis.js';
 
-/** Reservation TTL in seconds (10 minutes) */
-export const RESERVATION_TTL = 3 * 60;
+import { env } from '../config/env.js';
+
+/** Reservation TTL in seconds */
+export const RESERVATION_TTL = env.reservationTtl;
 
 /**
  * Lua script for atomic stock reservation.

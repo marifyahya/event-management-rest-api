@@ -5,9 +5,10 @@ import { logger } from '../libs/logger.js';
 import { redisConnection } from '../libs/redis.js';
 import { ORDER_STATUS } from '../constants/order-status.js';
 import { PAYMENT_STATUS } from '../constants/payment-status.js';
-import { midtransService } from '../services/midtrans.service.js';
+import { paymentService } from '../services/payment.service.js';
 import { CREATE_PAYMENT_QUEUE_NAME, type CreatePaymentJobData } from '../queues/create-payment.queue.js';
 import { RESERVATION_TTL, restoreStock } from '../libs/reservation.js';
+import { env } from '../config/env.js';
 
 const worker = new Worker<CreatePaymentJobData>(
   CREATE_PAYMENT_QUEUE_NAME,
@@ -24,9 +25,9 @@ const worker = new Worker<CreatePaymentJobData>(
       return { orderId, status: 'not_found' };
     }
 
-    let midtransResponse;
+    let transactionResponse;
     try {
-      midtransResponse = await midtransService.createTransaction({
+      transactionResponse = await paymentService.createTransaction({
         orderNumber: order.orderNumber,
         grossAmount: order.totalAmount,
         customerName: order.user.fullName,
@@ -41,7 +42,7 @@ const worker = new Worker<CreatePaymentJobData>(
     } catch (error) {
       logger.error(
         { orderId, err: error },
-        'Failed to create Midtrans transaction, cancelling order and releasing stock immediately',
+        'Failed to create payment transaction, cancelling order and releasing stock immediately',
       );
 
       await prisma.order.update({
@@ -62,8 +63,8 @@ const worker = new Worker<CreatePaymentJobData>(
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
-          snapToken: midtransResponse.token,
-          snapRedirectUrl: midtransResponse.redirectUrl,
+          providerToken: transactionResponse.providerToken,
+          checkoutUrl: transactionResponse.checkoutUrl,
           status: PAYMENT_STATUS.PENDING,
         },
       });
@@ -73,17 +74,18 @@ const worker = new Worker<CreatePaymentJobData>(
           orderId: order.id,
           providerOrderId: order.orderNumber,
           grossAmount: order.totalAmount,
-          snapToken: midtransResponse.token,
-          snapRedirectUrl: midtransResponse.redirectUrl,
+          providerToken: transactionResponse.providerToken,
+          checkoutUrl: transactionResponse.checkoutUrl,
           status: PAYMENT_STATUS.PENDING,
           paymentMethod,
+          provider: env.paymentGatewayProvider,
         },
       });
     }
 
     return {
       orderId,
-      snapToken: midtransResponse.token,
+      providerToken: transactionResponse.providerToken,
       status: PAYMENT_STATUS.PENDING,
     };
   },
