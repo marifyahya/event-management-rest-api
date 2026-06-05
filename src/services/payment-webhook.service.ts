@@ -8,6 +8,7 @@ import { BadRequest } from '../utils/app-error.js';
 import { generateTicketCode, generateQrToken } from '../utils/ticket.js';
 import { emailService } from './email.service.js';
 import { PaymentSuccessEmail } from '../emails/payment-success.email.js';
+import { getRedisClient } from '../libs/redis.js';
 
 class PaymentWebhookService {
   /**
@@ -29,33 +30,46 @@ class PaymentWebhookService {
 
     logger.info({ orderNumber, status }, 'Webhook parsed successfully');
 
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
-      include: { payment: true, user: true, event: true },
-    });
+    const redis = getRedisClient();
+    const lockKey = `lock:webhook:order:${orderNumber}`;
+    const lockAcquired = await redis.set(lockKey, 'LOCKED', 'EX', 15, 'NX');
 
-    if (!order) {
-      logger.warn({ orderNumber }, 'Webhook received for unknown order, skipping');
+    if (!lockAcquired) {
+      logger.warn({ orderNumber }, 'Webhook is processing concurrently, ignoring duplicate request');
       return;
     }
 
-    if (
-      order.status === ORDER_STATUS.PAID ||
-      order.status === ORDER_STATUS.CANCELLED ||
-      order.status === ORDER_STATUS.EXPIRED
-    ) {
-      logger.info({ orderNumber, status: order.status }, 'Order already in terminal state, skipping webhook');
-      return;
-    }
+    try {
+      const order = await prisma.order.findUnique({
+        where: { orderNumber },
+        include: { payment: true, user: true, event: true },
+      });
 
-    if (status === 'PAID') {
-      await this.handlePaid(order, rawPayload, providerTransactionId);
-    } else if (status === 'EXPIRED') {
-      await this.handleExpired(order, rawPayload);
-    } else if (status === 'CANCELLED') {
-      await this.handleCancelled(order, rawPayload);
-    } else {
-      logger.info({ orderNumber, status }, 'Webhook status is PENDING, no action taken');
+      if (!order) {
+        logger.warn({ orderNumber }, 'Webhook received for unknown order, skipping');
+        return;
+      }
+
+      if (
+        order.status === ORDER_STATUS.PAID ||
+        order.status === ORDER_STATUS.CANCELLED ||
+        order.status === ORDER_STATUS.EXPIRED
+      ) {
+        logger.info({ orderNumber, status: order.status }, 'Order already in terminal state, skipping webhook');
+        return;
+      }
+
+      if (status === 'PAID') {
+        await this.handlePaid(order, rawPayload, providerTransactionId);
+      } else if (status === 'EXPIRED') {
+        await this.handleExpired(order, rawPayload);
+      } else if (status === 'CANCELLED') {
+        await this.handleCancelled(order, rawPayload);
+      } else {
+        logger.info({ orderNumber, status }, 'Webhook status is PENDING, no action taken');
+      }
+    } finally {
+      await redis.del(lockKey);
     }
   }
 
