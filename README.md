@@ -41,6 +41,13 @@ LOG_LEVEL="info"
 MIDTRANS_SERVER_KEY="your_midtrans_server_key"
 MIDTRANS_CLIENT_KEY="your_midtrans_client_key"
 MIDTRANS_IS_PRODUCTION=false
+
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_USER="your.email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="\"Tickets.Live\" <your.email@gmail.com>"
+SMTP_TO_MAIL="dev-sink@example.com" # (Optional) Semua email akan dialihkan ke sini saat mode development
 ```
 
 Pastikan PostgreSQL database dan Redis sudah berjalan.
@@ -109,6 +116,7 @@ Atau jalankan worker secara terpisah:
 ```bash
 npm run worker:create-payment
 npm run worker:order-expire
+npm run worker:send-email
 ```
 
 Build dan production run:
@@ -129,6 +137,7 @@ npm run start
 | `npm run workers` | Run all BullMQ workers (recommended) |
 | `npm run worker:create-payment` | Run create-payment worker only |
 | `npm run worker:order-expire` | Run order-expire worker only |
+| `npm run worker:send-email` | Run email notification worker only |
 | `npm run test` | Run TypeScript build check |
 | `npm run db:generate` | Generate Prisma Client |
 | `npm run db:migrate` | Run Prisma migration |

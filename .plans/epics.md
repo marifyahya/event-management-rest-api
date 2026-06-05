@@ -81,8 +81,7 @@ Current scope note:
 - [x] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
 - [x] [Integration] `POST /api/payments/webhook`: process callback and update order (Xendit & Midtrans)
 - [x] [Backend] Issue digital ticket only after successful payment (via webhook PAID handler)
-- [ ] [Backend] `GET /api/tickets/:ticketId`: ticket detail
-- [ ] [Integration] Send payment success + ticket confirmation email after tickets are issued
+- [x] [Integration] Send payment success + ticket confirmation email after tickets are issued
 
 ### Epic 4: Check-in & Validation
 
@@ -106,9 +105,9 @@ Current scope note:
 
 ### Epic 6: Email Notification
 
-- [ ] [Integration] Setup email provider (e.g. Nodemailer + SMTP / Resend / SendGrid)
-- [ ] [Integration] Create `send-email` BullMQ queue and worker
-- [ ] [Integration] Design payment success email template (order summary + ticket list)
-- [ ] [Integration] Enqueue send-email job from `handlePaid` in `payment-webhook.service.ts`
-- [ ] [Integration] Email contains: event name, date, location, ticket codes, QR token info
-- [ ] [Integration] Handle email send failure gracefully (log error, do not block webhook response)
+- [x] [Integration] Setup email provider (e.g. Nodemailer + SMTP / Resend / SendGrid)
+- [x] [Integration] Create `send-email` BullMQ queue and worker
+- [x] [Integration] Design payment success email template (order summary + ticket list)
+- [x] [Integration] Enqueue send-email job from `handlePaid` in `payment-webhook.service.ts`
+- [x] [Integration] Email contains: event name, date, location, ticket codes, QR token info
+- [x] [Integration] Handle email send failure gracefully (log error, do not block webhook response)

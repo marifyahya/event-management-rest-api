@@ -22,6 +22,7 @@ sequenceDiagram
     participant WP as Payment Worker
     participant WE as Expire Worker
     participant P as Payment Provider (Xendit/Midtrans)
+    participant WN as Notification Worker
 
     U->>FE: Click "Order"
     FE->>FE: Open checkout page
@@ -59,10 +60,20 @@ sequenceDiagram
         P-->>API: POST /api/payments/webhook
         API->>API: verifyWebhookSignature\n(x-callback-token or SHA512)
         API->>API: parseWebhookPayload → PAID/EXPIRED/CANCELLED
-        API->>DB: Update payment (status=PAID, providerTransactionId, paidAt)
-        API->>DB: Update order (status=PAID, paidAt)
-        API->>DB: Issue tickets (createMany)
-        API->>R: confirmReservation → DEL reservation:{orderNumber}
+        
+        API->>R: Acquire Distributed Lock (SET NX EX 15)
+        opt Lock acquired
+            API->>DB: Update payment (status=PAID, providerTransactionId, paidAt)
+            API->>DB: Update order (status=PAID, paidAt)
+            API->>DB: Issue tickets (createMany with NanoID)
+            API->>R: confirmReservation → DEL reservation:{orderNumber}
+            API->>Q: Enqueue send-email(PaymentSuccessEmail, payload)
+            API->>R: Release Distributed Lock
+            
+            Q->>WN: Deliver send-email job
+            WN->>WN: Render Handlebars Template (Inline CSS)
+            WN->>U: Send Email via SMTP Pool
+        end
         API-->>P: 200 OK
 
     else Stock unavailable
@@ -94,10 +105,13 @@ sequenceDiagram
 - Reservation TTL is configurable via `RESERVATION_TTL` env var (default: 5 minutes).
 - Quantity must be part of the atomic reservation request.
 - Webhook endpoint `POST /api/payments/webhook` is public (no auth middleware).
-- Idempotency: webhook is ignored if order is already in a terminal state (`paid`, `expired`, `cancelled`).
+- Idempotency: 
+  - Uses **Redis Distributed Lock** (`SET NX EX 15`) to prevent race conditions from concurrent duplicate webhooks.
+  - Webhook is ignored if order is already in a terminal state (`paid`, `expired`, `cancelled`).
 - Provider signature is verified before any DB operation:
   - **Xendit**: `x-callback-token` header compared against `XENDIT_WEBHOOK_TOKEN`
   - **Midtrans**: SHA512(`order_id + status_code + gross_amount + server_key`) from body
+- Tickets use **NanoID** (10-chars, unambiguous alphabet) to eliminate DB `UniqueConstraint` collisions.
 
 ## Payment Provider Strategy
 
