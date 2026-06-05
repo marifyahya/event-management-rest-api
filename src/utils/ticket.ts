@@ -1,12 +1,15 @@
+import { customAlphabet } from 'nanoid';
 import { randomBytes } from 'crypto';
 
+const nanoid = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 10);
+
 /**
- * Generate a unique, human-readable ticket code.
- * Format: TKT-<8 random uppercase hex chars>
- * Example: TKT-3F9A2C1D
+ * Generate a unique.
+ * Format: TKT-<10 random secure chars>
+ * Example: TKT-A7B8Z9K2XQ
  */
 export function generateTicketCode(): string {
-  return `TKT-${randomBytes(4).toString('hex').toUpperCase()}`;
+  return `TKT-${nanoid()}`;
 }
 
 /**
