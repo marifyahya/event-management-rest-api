@@ -6,6 +6,8 @@ import { PAYMENT_STATUS } from '../constants/payment-status.js';
 import { confirmReservation, releaseReservation } from '../libs/reservation.js';
 import { BadRequest } from '../utils/app-error.js';
 import { generateTicketCode, generateQrToken } from '../utils/ticket.js';
+import { emailService } from './email.service.js';
+import { PaymentSuccessEmail } from '../emails/payment-success.email.js';
 
 class PaymentWebhookService {
   /**
@@ -29,7 +31,7 @@ class PaymentWebhookService {
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },
-      include: { payment: true },
+      include: { payment: true, user: true, event: true },
     });
 
     if (!order) {
@@ -58,7 +60,7 @@ class PaymentWebhookService {
   }
 
   private async handlePaid(
-    order: Awaited<ReturnType<typeof prisma.order.findUnique>> & { payment: any },
+    order: Awaited<ReturnType<typeof prisma.order.findUnique>> & { payment: any; user: any; event: any },
     rawPayload: any,
     providerTransactionId?: string,
   ): Promise<void> {
@@ -95,6 +97,25 @@ class PaymentWebhookService {
     });
 
     await confirmReservation(order!.orderNumber);
+
+    const issuedTickets = await prisma.ticket.findMany({
+      where: { orderId: order!.id },
+      select: { ticketCode: true, qrToken: true },
+    });
+
+    emailService.sendAsync(
+      new PaymentSuccessEmail({
+        to: order!.user.email,
+        customerName: order!.user.fullName,
+        orderNumber: order!.orderNumber,
+        eventTitle: order!.event.title,
+        eventLocation: order!.event.location,
+        eventStartAt: order!.event.startAt,
+        quantity: order!.quantity,
+        totalAmount: order!.totalAmount,
+        tickets: issuedTickets,
+      }),
+    );
 
     logger.info({ orderNumber: order!.orderNumber, quantity: order!.quantity }, 'Order paid, tickets issued');
   }

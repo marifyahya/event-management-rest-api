@@ -102,6 +102,7 @@ class OrderService {
         payment: true,
         event: true,
         user: true,
+        tickets: true,
       },
     });
 

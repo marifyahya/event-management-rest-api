@@ -15,4 +15,10 @@ export const env = {
   xenditApiUrl: process.env.XENDIT_API_URL || 'https://api.xendit.co',
   xenditSecretKey: process.env.XENDIT_SECRET_KEY || '',
   xenditWebhookToken: process.env.XENDIT_WEBHOOK_TOKEN || '',
+  smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
+  smtpPort: Number(process.env.SMTP_PORT) || 587,
+  smtpUser: process.env.SMTP_USER || '',
+  smtpPass: process.env.SMTP_PASS || '',
+  smtpFrom: process.env.SMTP_FROM || 'Event Organizer <noreply@example.com>',
+  smtpToMail: process.env.SMTP_TO_MAIL || '', // Sink email address for development
 };
