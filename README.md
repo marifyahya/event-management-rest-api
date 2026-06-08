@@ -15,6 +15,8 @@ REST API untuk manajemen event, registrasi peserta, pembayaran tiket, slot pool 
 - JWT
 - bcrypt
 - Pino logger
+- Puppeteer (PDF Ticket Generation)
+- Supabase Storage (Cloud Storage)
 
 ## Install
 
@@ -48,6 +50,15 @@ SMTP_USER="your.email@gmail.com"
 SMTP_PASS="your-app-password"
 SMTP_FROM="\"Tickets.Live\" <your.email@gmail.com>"
 SMTP_TO_MAIL="dev-sink@example.com" # (Optional) Semua email akan dialihkan ke sini saat mode development
+
+# Storage Setup (Driver: local or supabase)
+STORAGE_DRIVER="local"
+APP_URL="http://localhost:3000"
+
+# Supabase Storage Setup
+SUPABASE_URL="https://your-project-id.supabase.co"
+SUPABASE_KEY="your-supabase-service-role-key"
+SUPABASE_BUCKET="event-orgnzr"
 ```
 
 Pastikan PostgreSQL database dan Redis sudah berjalan.
@@ -117,6 +128,7 @@ Atau jalankan worker secara terpisah:
 npm run worker:create-payment
 npm run worker:order-expire
 npm run worker:send-email
+npm run worker:generate-pdf
 ```
 
 Build dan production run:
@@ -138,6 +150,7 @@ npm run start
 | `npm run worker:create-payment` | Run create-payment worker only |
 | `npm run worker:order-expire` | Run order-expire worker only |
 | `npm run worker:send-email` | Run email notification worker only |
+| `npm run worker:generate-pdf` | Run PDF ticket generation worker only |
 | `npm run test` | Run TypeScript build check |
 | `npm run db:generate` | Generate Prisma Client |
 | `npm run db:migrate` | Run Prisma migration |

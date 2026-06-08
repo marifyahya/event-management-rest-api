@@ -82,6 +82,7 @@ Stores event ticket purchase orders.
 | `total_amount` | integer | not null | Total payment amount |
 | `expires_at` | timestamp | nullable | Payment deadline |
 | `paid_at` | timestamp | nullable | Successful payment datetime |
+| `ticket_pdf_url` | text | nullable | URL to downloaded PDF ticket in Storage |
 | `created_at` | timestamp | not null | Creation time |
 | `updated_at` | timestamp | not null | Last update time |
 

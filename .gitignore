@@ -7,3 +7,7 @@ dist
 src/generated
 **/.DS_Store
 .opencode
+
+# Public Storage
+public/tickets/*
+!public/tickets/.gitkeep

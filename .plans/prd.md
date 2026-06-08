@@ -144,7 +144,9 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 | `csv-stringify` | CSV export |
 | `midtrans-client` | Midtrans Snap/Core integration |
 | `nodemailer` or provider SDK | Email notification delivery |
-| `bullmq` + `ioredis` | Order queue, payment jobs, email jobs |
+| `bullmq` + `ioredis` | Order queue, payment jobs, email jobs, and PDF generation jobs |
+| `puppeteer` | Headless HTML to PDF Ticket rendering |
+| `@supabase/supabase-js` | Cloud storage for PDF tickets |
 
 ### Environment Variables
 
@@ -165,8 +167,13 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=change_me
 SMTP_PASS=change_me
+STORAGE_DRIVER=local
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=service_role_key
+SUPABASE_BUCKET=event-orgnzr
 QUEUE_CREATE_ORDER_NAME=create-order
 QUEUE_EMAIL_NAME=email-notification
+QUEUE_GENERATE_PDF_NAME=generate-pdf
 ```
 
 ### Payment & Order Flow Rules
