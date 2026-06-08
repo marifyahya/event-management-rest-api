@@ -11,3 +11,6 @@ src/generated
 # Public Storage
 public/tickets/*
 !public/tickets/.gitkeep
+
+# Testing coverage
+coverage/
