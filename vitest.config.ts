@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, configDefaults } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -11,5 +11,6 @@ export default defineConfig({
     },
     setupFiles: ['./src/__tests__/setup.ts'],
     clearMocks: true,
+    exclude: [...configDefaults.exclude, 'dist/**'],
   },
 });

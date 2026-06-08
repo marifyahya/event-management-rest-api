@@ -139,7 +139,7 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 | `jsonwebtoken` | JWT authentication |
 | `helmet` | Security headers |
 | `cors` | CORS configuration |
-| `express-rate-limit` | Rate limiting sensitive endpoints |
+| `express-rate-limit` + `rate-limit-redis` | Distributed rate limiting with Redis backing |
 | `nanoid` | Ticket code and QR token generation |
 | `csv-stringify` | CSV export |
 | `midtrans-client` | Midtrans Snap/Core integration |
@@ -195,3 +195,12 @@ QUEUE_GENERATE_PDF_NAME=generate-pdf
 - Send payment-failed/expired email on failure or timeout.
 - Email sending must be asynchronous via queue.
 - Email failure must not roll back order/ticket state; log failure for retries.
+
+### Rate Limiting Rules
+
+- Rate limiting counters must be stored in Redis using unique prefixes per category.
+- **Global Limiter**: 100 requests per 1 minute per client (Key: IP Address + User-Agent). Applied on all `/api` endpoints.
+- **Auth Limiter**: 5 attempts per 15 minutes (Key: IP Address + Email). Applied on login and registration endpoints.
+- **Order Checkout Limiter**: 3 orders per 1 minute (Key: Authenticated User ID or IP). Applied on order creation.
+- Rate limiting must return HTTP status `429 Too Many Requests`.
+- Rate limiting must be automatically bypassed when running tests (`NODE_ENV=test`).

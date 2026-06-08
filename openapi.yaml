@@ -119,6 +119,8 @@ paths:
                   errors:
                     type: object
                     example: { email: ["Invalid email format"] }
+        '429':
+          $ref: '#/components/responses/TooManyAuthRequests'
 
   /api/auth/login:
     post:
@@ -183,6 +185,8 @@ paths:
                     example: Invalid email or password
                   errors:
                     type: object
+        '429':
+          $ref: '#/components/responses/TooManyAuthRequests'
 
   /api/auth/me:
     get:
@@ -1002,6 +1006,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /api/orders/{id}:
     get:
@@ -1178,6 +1184,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AppErrorResponse'
+    TooManyRequests:
+      description: Too Many Requests / Rate Limit Exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppErrorResponse'
+    TooManyAuthRequests:
+      description: Too Many Auth Requests / Rate Limit Exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Too many login attempts. Please try again after 15 minutes.
   schemas:
     User:
       type: object

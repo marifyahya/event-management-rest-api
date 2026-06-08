@@ -17,6 +17,7 @@ REST API untuk manajemen event, registrasi peserta, pembayaran tiket, slot pool 
 - Pino logger
 - Puppeteer (PDF Ticket Generation)
 - Supabase Storage (Cloud Storage)
+- Rate limiter
 
 ## Install
 
