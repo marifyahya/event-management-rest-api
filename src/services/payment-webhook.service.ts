@@ -6,8 +6,7 @@ import { PAYMENT_STATUS } from '../constants/payment-status.js';
 import { confirmReservation, releaseReservation } from '../libs/reservation.js';
 import { BadRequest } from '../utils/app-error.js';
 import { generateTicketCode, generateQrToken } from '../utils/ticket.js';
-import { emailService } from './email.service.js';
-import { PaymentSuccessEmail } from '../emails/payment-success.email.js';
+import { generatePdfQueue } from '../queues/generate-pdf.queue.js';
 import { getRedisClient } from '../libs/redis.js';
 
 class PaymentWebhookService {
@@ -112,26 +111,11 @@ class PaymentWebhookService {
 
     await confirmReservation(order!.orderNumber);
 
-    const issuedTickets = await prisma.ticket.findMany({
-      where: { orderId: order!.id },
-      select: { ticketCode: true, qrToken: true },
+    await generatePdfQueue.add('generate-pdf', {
+      orderNumber: order.orderNumber,
     });
 
-    emailService.sendAsync(
-      new PaymentSuccessEmail({
-        to: order!.user.email,
-        customerName: order!.user.fullName,
-        orderNumber: order!.orderNumber,
-        eventTitle: order!.event.title,
-        eventLocation: order!.event.location,
-        eventStartAt: order!.event.startAt,
-        quantity: order!.quantity,
-        totalAmount: order!.totalAmount,
-        tickets: issuedTickets,
-      }),
-    );
-
-    logger.info({ orderNumber: order!.orderNumber, quantity: order!.quantity }, 'Order paid, tickets issued');
+    logger.info({ orderNumber: order.orderNumber }, 'Payment confirmed, tickets issued, and PDF generation enqueued');
   }
 
   private async handleExpired(

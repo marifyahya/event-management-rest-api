@@ -11,10 +11,11 @@ export type PaymentSuccessTemplateData = {
   orderNumber: string;
   eventTitle: string;
   eventLocation: string;
-  eventStartAt: Date;
+  eventStartAt: Date | string;
   quantity: number;
   totalAmount: number;
   tickets: Array<{ ticketCode: string; qrToken: string }>;
+  pdfUrl?: string;
 };
 
 // Register helper for 1-based index in Handlebars loops
@@ -23,7 +24,7 @@ Handlebars.registerHelper('@index_plus_one', (options) => {
 });
 
 // Compile template once during module initialization (synchronous read is OK here)
-const templatePath = path.join(__dirname, 'views', 'payment-success.hbs');
+const templatePath = path.join(__dirname, 'email', 'payment-success.hbs');
 const templateSource = fs.readFileSync(templatePath, 'utf-8');
 const compiledTemplate = Handlebars.compile(templateSource);
 
@@ -33,11 +34,12 @@ const compiledTemplate = Handlebars.compile(templateSource);
 export function renderPaymentSuccessEmail(data: PaymentSuccessTemplateData): string {
   const { eventStartAt, totalAmount, ...rest } = data;
 
+  const dateObj = new Date(eventStartAt);
   const formattedDate = new Intl.DateTimeFormat('id-ID', {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: 'Asia/Jakarta',
-  }).format(eventStartAt);
+  }).format(dateObj);
 
   const formattedAmount = new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -45,7 +47,6 @@ export function renderPaymentSuccessEmail(data: PaymentSuccessTemplateData): str
     minimumFractionDigits: 0,
   }).format(totalAmount);
 
-  // Pass pre-formatted strings to the Handlebars template
   return compiledTemplate({
     ...rest,
     formattedDate,

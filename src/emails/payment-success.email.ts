@@ -7,10 +7,11 @@ type PaymentSuccessData = {
   orderNumber: string;
   eventTitle: string;
   eventLocation: string;
-  eventStartAt: Date;
+  eventStartAt: Date | string;
   quantity: number;
   totalAmount: number;
   tickets: Array<{ ticketCode: string; qrToken: string }>;
+  pdfUrl?: string;
 };
 
 export class PaymentSuccessEmail implements Mailable {
@@ -35,6 +36,7 @@ export class PaymentSuccessEmail implements Mailable {
         quantity: this.payload.quantity,
         totalAmount: this.payload.totalAmount,
         tickets: this.payload.tickets,
+        pdfUrl: this.payload.pdfUrl,
       }),
     };
   }

@@ -1,0 +1,307 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Ticket PDF</title>
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+    <link
+      href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+      rel='stylesheet'
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 40px;
+        background-color: #f4f6f9;
+        font-family:
+          'Inter',
+          -apple-system,
+          sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .ticket-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      /* Header Bar */
+      .header {
+        background: white;
+        padding: 24px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        margin-bottom: 8px;
+      }
+      .logo {
+        font-weight: 800;
+        color: #251b95;
+        font-size: 20px;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+      }
+      .ticket-count {
+        font-size: 14px;
+        color: #4b5563;
+        font-weight: 500;
+      }
+
+      /* Main Card */
+      .main-card {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+      }
+      .event-hero {
+        background: #31239f;
+        color: white;
+        padding: 48px 32px;
+        text-align: center;
+        position: relative;
+      }
+      .event-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+        pointer-events: none;
+      }
+      .event-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.8;
+        margin-bottom: 12px;
+      }
+      .event-title {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      /* Event Details Grid */
+      .event-details {
+        padding: 32px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .detail-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .detail-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .detail-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Order Meta Details */
+      .order-meta {
+        padding: 24px 32px;
+        display: flex;
+        justify-content: space-between;
+        background: #f9fafb;
+      }
+      .meta-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        margin-top: 6px;
+      }
+      .meta-value span {
+        color: #6b7280;
+        font-weight: 400;
+      }
+
+      /* Perforated Tickets List */
+      .tickets-container {
+        margin-top: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .ticket-item {
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        position: relative;
+        border: 1px solid #e5e7eb;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      /* Perforation line */
+      .ticket-item::before {
+        content: '';
+        position: absolute;
+        left: 200px;
+        top: 0;
+        bottom: 0;
+        border-left: 2px dashed #e5e7eb;
+      }
+      .ticket-item::after {
+        content: '';
+        position: absolute;
+        left: 193px;
+        top: -8px;
+        width: 16px;
+        height: 16px;
+        background: #f4f6f9;
+        border-radius: 50%;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .perforation-bottom {
+        position: absolute;
+        left: 193px;
+        bottom: -8px;
+        width: 16px;
+        height: 16px;
+        background: #f4f6f9;
+        border-radius: 50%;
+        border-top: 1px solid #e5e7eb;
+        z-index: 2;
+      }
+      .qr-section {
+        width: 200px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        border-radius: 12px 0 0 12px;
+      }
+      .qr-placeholder {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 8px;
+      }
+      .qr-text {
+        margin-top: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        letter-spacing: 1px;
+      }
+      .ticket-info {
+        padding: 32px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .ticket-code {
+        font-size: 28px;
+        font-weight: 800;
+        color: #251b95;
+        font-family: monospace;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+      }
+      .ticket-type {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='ticket-wrapper'>
+
+      <!-- Top Header -->
+      <div class='header'>
+        <div class='logo'>🎟️ TICKETS.LIVE</div>
+        <div class='ticket-count'><b>{{quantity}}</b> Tickets Found</div>
+      </div>
+
+      <!-- Main Event Details Block -->
+      <div class='main-card'>
+        <div class='event-hero'>
+          <div class='event-label'>Official Event Details</div>
+          <h1 class='event-title'>{{eventTitle}}</h1>
+        </div>
+
+        <div class='event-details'>
+          <div class='detail-group'>
+            <div class='detail-label'>Tanggal</div>
+            <div class='detail-value'>
+              <span style='font-size: 16px;'>📅</span>
+              {{formattedDate}}
+            </div>
+          </div>
+          <div class='detail-group' style='max-width: 45%;'>
+            <div class='detail-label'>Lokasi</div>
+            <div class='detail-value'>
+              <span style='font-size: 16px;'>📍</span>
+              {{eventLocation}}
+            </div>
+          </div>
+        </div>
+
+        <div class='order-meta'>
+          <div class='detail-group'>
+            <div class='detail-label'>Order ID</div>
+            <div class='meta-value'>{{orderNumber}}</div>
+          </div>
+          <div class='detail-group' style='text-align: right;'>
+            <div class='detail-label'>Purchased By</div>
+            <div class='meta-value'>{{customerName}} <span>({{to}})</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Individual Ticket List -->
+      <div class='tickets-container'>
+        {{#each tickets}}
+          <div class='ticket-item'>
+            <div class='perforation-bottom'></div>
+            <div class='qr-section'>
+              <!-- Create Google API QR Code using the qrToken -->
+              <div class='qr-placeholder'>
+                <img
+                  src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{this.qrToken}}'
+                  alt='QR'
+                  style='width: 100%; height: 100%; display: block;'
+                />
+              </div>
+              <div class='qr-text'>SCAN TICKET</div>
+            </div>
+            <div class='ticket-info'>
+              <div class='detail-label' style='margin-bottom: 6px;'>Ticket Code</div>
+              <div class='ticket-code'>{{this.ticketCode}}</div>
+              <div class='ticket-type'>General Admission</div>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+
+    </div>
+  </body>
+</html>

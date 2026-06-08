@@ -152,7 +152,7 @@ Content-Type: {{contentType}}
 
 {
   "eventId": 7,
-  "quantity": 2,
+  "quantity": 6,
   "paymentMethod": "BCA_VA"
 }
 

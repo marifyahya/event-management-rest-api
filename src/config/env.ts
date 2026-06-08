@@ -21,4 +21,9 @@ export const env = {
   smtpPass: process.env.SMTP_PASS || '',
   smtpFrom: process.env.SMTP_FROM || 'Event Organizer <noreply@example.com>',
   smtpToMail: process.env.SMTP_TO_MAIL || '', // Sink email address for development
+  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  storageDriver: process.env.STORAGE_DRIVER || 'local',
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseKey: process.env.SUPABASE_KEY || '',
+  supabaseBucket: process.env.SUPABASE_BUCKET || 'event-orgnzr',
 };

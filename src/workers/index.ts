@@ -6,3 +6,4 @@
 import './create-payment.worker.js';
 import './order-expire.worker.js';
 import './send-email.worker.js';
+import './generate-pdf.worker.js';
