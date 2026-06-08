@@ -160,3 +160,13 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/api/orders/9c23301d-2606-4a52-91cf-6771693e3f08
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
+
+### Ticket Check-in
+POST {{baseUrl}}/api/admin/check-ins
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "qrToken": "271d80340acf628cb30cdb8fe64f3277"
+}
+

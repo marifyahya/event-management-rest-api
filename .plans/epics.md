@@ -85,11 +85,7 @@ Current scope note:
 
 ### Epic 4: Check-in & Validation
 
-- [ ] [Database] Create `check_ins` table with relation to organizer
-- [ ] [Backend] `POST /api/admin/check-ins/validate`: validate ticket code/QR token
-- [ ] [Backend] `POST /api/admin/check-ins`: check-in valid ticket (with duplicate prevention)
-- [ ] [Backend] `GET /api/admin/events/:eventId/check-ins`: event check-in list
-- [ ] [Backend] `GET /api/admin/check-ins/:checkInId`: check-in detail
+- [ ] [Backend] `POST /api/admin/check-ins`: single endpoint to validate and check-in ticket (with duplicate prevention)
 - [ ] [Integration] Restrict check-in access to organizer/staff/admin
 
 ### Epic 5: Dashboard & Reporting

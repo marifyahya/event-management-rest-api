@@ -10,13 +10,10 @@ This document describes the database schema plan for the Event Management REST A
 users 1--N events
 users 1--N orders
 users 1--N tickets
-users 1--N check_ins
 events 1--N orders
 events 1--N tickets
 orders 1--1 payments
 orders 1--N tickets
-tickets 1--0..1 check_ins
-events 1--N check_ins
 ```
 
 ---
@@ -131,20 +128,6 @@ Stores digital tickets issued after successful payment.
 
 ---
 
-## `check_ins`
-
-Stores ticket check-in history.
-
-| Column | Type | Constraint | Description |
-| --- | --- | --- | --- |
-| `id` | serial/integer | PK, auto increment | Check-in ID |
-| `event_id` | integer | FK `events.id`, not null | Related event |
-| `ticket_id` | integer | FK `tickets.id`, unique, not null | Used ticket |
-| `checked_by` | integer | FK `users.id`, not null | Staff/organizer checker |
-| `status` | text | not null, default `success` | `success`, `rejected` |
-| `notes` | text | nullable | Validation notes |
-| `checked_at` | timestamp | not null | Check-in datetime |
-| `created_at` | timestamp | not null | Creation time |
 
 ---
 
@@ -168,8 +151,6 @@ Stores ticket check-in history.
 | `tickets` | `ticket_code` | Ticket validation |
 | `tickets` | `qr_token` | QR validation |
 | `tickets` | `event_id` | Tickets by event |
-| `check_ins` | `event_id` | Event check-in reports |
-| `check_ins` | `checked_at` | Date-based check-in filters |
 
 ---
 

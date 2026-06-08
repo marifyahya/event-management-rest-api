@@ -18,3 +18,12 @@ export const authMiddleware = (req: Request, _res: Response, next: NextFunction)
     throw new UnauthorizedError();
   }
 };
+
+export const requireRole = (roles: string[]) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      throw new UnauthorizedError('Access denied: Insufficient permissions');
+    }
+    next();
+  };
+};

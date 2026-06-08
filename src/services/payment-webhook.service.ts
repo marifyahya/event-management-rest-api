@@ -3,6 +3,7 @@ import { logger } from '../libs/logger.js';
 import { paymentService } from './payment.service.js';
 import { ORDER_STATUS } from '../constants/order-status.js';
 import { PAYMENT_STATUS } from '../constants/payment-status.js';
+import { TICKET_STATUS } from '../constants/ticket-status.js';
 import { confirmReservation, releaseReservation } from '../libs/reservation.js';
 import { BadRequest } from '../utils/app-error.js';
 import { generateTicketCode, generateQrToken } from '../utils/ticket.js';
@@ -104,6 +105,7 @@ class PaymentWebhookService {
         userId: order!.userId,
         ticketCode: generateTicketCode(),
         qrToken: generateQrToken(),
+        status: TICKET_STATUS.VALID,
       }));
 
       await tx.ticket.createMany({ data: ticketData });

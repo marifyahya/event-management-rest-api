@@ -7,6 +7,7 @@ import eventRouter from './event.routes.js';
 import publicEventRouter from './public-event.routes.js';
 import orderRouter from './order.routes.js';
 import paymentRouter from './payment.routes.js';
+import checkinRouter from './checkin.routes.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -27,6 +28,7 @@ protectedRouter.use('/auth', protectedAuthRouter);
 protectedRouter.use('/users', userRouter);
 protectedRouter.use('/orders', orderRouter);
 protectedRouter.use('/admin/events', eventRouter);
+protectedRouter.use('/admin/check-ins', checkinRouter);
 
 router.use(protectedRouter);
 
