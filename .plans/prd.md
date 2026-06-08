@@ -1,6 +1,6 @@
 # Event Management REST API PRD
 
-This document summarizes product requirements, database scope, minimum endpoints, timeline, and technical notes for the Event Management REST API.
+This file explain about product requirements, database, endpoints, timeline, and technical notes for Event Management REST API.
 
 ---
 
@@ -8,78 +8,343 @@ This document summarizes product requirements, database scope, minimum endpoints
 
 ### Background
 
-Event organizers need a centralized backend system to manage events, attendees, tickets, check-ins, and reporting. Without a structured system, registration and ticket validation are prone to duplicate data, invalid tickets, and inaccurate reporting.
+Event makers need backend system to manage events, people, tickets, check-in, and report. Without good system, registration and ticket check can have double data, fake ticket, and wrong report.
 
 ### Product Goals
 
-- Provide a REST API to create, manage, and publish events.
-- Support attendee order, Midtrans payments, and digital ticket issuance.
-- Simplify check-in with ticket code or QR token validation.
-- Provide basic dashboards and reports for organizers.
-- Protect data with authentication, authorization, and request validation.
+- Make REST API to create, manage, and show events.
+- Support people to order ticket, pay with Midtrans, and get digital ticket.
+- Make easy check-in using ticket code or QR token.
+- Give simple dashboard and report for event makers.
+- Keep data safe with login, role access, and check request data.
 
 ### User Personas
 
 | Persona | Primary Needs | Pain Points |
 | --- | --- | --- |
-| Event Organizer | Create events, monitor attendees, view reports | Hard to track capacity and check-in status |
-| Attendee | Order for events and receive tickets | Manual registration and poor ticket traceability |
-| Admin | Manage users, events, and system access | Needs consistent data and access controls |
+| Event Organizer | Create events, see people, see reports | Hard to check capacity and check-in |
+| Attendee | Buy event ticket and get ticket | Manual register and ticket is easily lost |
+| Admin | Manage users, events, and system | Need good data and access control |
 
 ### Core Features
 
 | Priority | Feature | Description |
 | --- | --- | --- |
-| High | Authentication & Authorization | Register, login, profile, role-based access |
-| High | Event Management | Event CRUD, publish, cancel, filter, sort |
-| High | Order & Ticketing | Event order, ticket generation, ticket view |
-| High | Midtrans Payment | Create payment transactions, process webhooks, confirm tickets after success |
-| Mid | Email Notifications | Send order, payment success/failure, and ticket emails |
-| High | Check-in & Validation | Ticket validation and attendee check-in |
-| Mid | Dashboard | Event, ticket, and check-in statistics |
-| Mid | Reports | Attendee and check-in reports |
-| Low | CSV Export | Export report data to CSV |
+| High | Login & Access | Register, login, profile, role access |
+| High | Event Management | Create, read, update, delete event, publish, cancel |
+| High | Order & Ticketing | Buy ticket, make ticket, see ticket |
+| High | Midtrans Payment | Make payment, process webhook, confirm ticket |
+| Mid | Email Notifications | Send email for order, payment success/fail, and ticket |
+| High | Check-in | Validate ticket and check-in people |
+| Mid | Dashboard | See event, ticket, and check-in numbers |
+| Mid | Reports | See people and check-in reports |
+| Low | CSV Export | Download report data to CSV file |
 
 ### Non-Functional Requirements
 
 | Area | Requirement |
 | --- | --- |
-| Performance | Simple API responses < 300ms, pagination for large lists |
-| Security | Password hashing, JWT/session, RBAC, login rate limiting |
-| Scalability | Domain-based module structure and migration-ready schema |
-| Reliability | DB transactions for order, payment, ticketing, and check-in |
-| Maintainability | Consistent Zod validation and standardized error format |
+| Performance | Fast API response < 300ms, use pagination for long list |
+| Security | Hash password, use JWT, role access, limit login request |
+| Scalability | Code split by domain, schema ready for migration |
+| Reliability | Use database transaction for order, payment, ticket, check-in |
+| Maintainability | Use Zod to check data, same error format for all |
 
 ---
 
 ## 2. Epic & Implementation Tasks
 
-Epic breakdown and implementation checklist are maintained in a dedicated file to keep this PRD concise.
+### Epic Breakdown
 
-See: [epics.md](./epics.md)
+| Epic | Name | Outcome |
+| --- | --- | --- |
+| Epic 1 | Setup & Authentication | Secure API with user login and role access |
+| Epic 2 | Event Management | Organizer can manage event lifecycle |
+| Epic 3 | Order, Payment & Ticketing | Attendees can order, pay via Xendit/Midtrans, and receive tickets |
+| Epic 4 | Check-in & Validation | Staff can validate and check in tickets |
+| Epic 5 | Dashboard & Reporting | Organizer can view metrics and reports |
+| Epic 6 | Email Notification | Users receive email confirmation after payment and ticket issuance |
+
+### Subtasks per Epic
+
+> Tasks are intentionally small and target roughly 25 minutes each.
+
+#### Epic 1: Setup & Authentication
+
+- [x] [Database] User schema migration: add `role`, `last_login_at`, and timestamps
+- [x] [Backend] `POST /api/auth/register`: request validator
+- [x] [Backend] `POST /api/auth/register`: create self-registered `participant` with hashed password
+- [x] [Backend] `POST /api/users`: admin creates `admin` or `staff` with hashed password
+- [x] [Backend] `GET /api/users`: admin user list with role/status/search/pagination
+- [x] [Backend] `GET /api/users/:userId`: admin user detail
+- [x] [Backend] `PATCH /api/users/:userId`: admin updates name/role/status/password
+- [x] [Backend] `DELETE /api/users/:userId`: admin deactivates user without removing historical data (soft delete)
+- [x] [Backend] `POST /api/auth/login`: validate credentials and return token
+- [x] [Backend] `GET /api/auth/me`: fetch current user profile
+- [x] [Backend] `POST /api/auth/logout`: logout response
+- [x] [Integration] `requireAuth` middleware
+- [x] [Integration] `requireRole` middleware
+
+#### Epic 2: Event Management
+
+- [x] [Database] Event schema migration: create `events` table
+- [x] [Database] Add `organizer` relation to Event model
+- [x] [Backend] `POST /api/admin/events`: create draft event
+- [x] [Backend] `GET /api/admin/events`: list events with filters/pagination/sort
+- [x] [Backend] `GET /api/admin/events/:eventId`: event detail with organizer info
+- [x] [Backend] `PATCH /api/admin/events/:eventId`: update event
+- [x] [Backend] `DELETE /api/admin/events/:eventId`: lifecycle-controlled delete
+- [x] [Backend] `POST /api/admin/events/:eventId/publish`: publish event
+- [x] [Backend] `POST /api/admin/events/:eventId/cancel`: cancel event
+- [x] [Backend] `POST /api/admin/events/:eventId/archive`: archive event
+- [x] [Backend] `POST /api/admin/events/:eventId/move-to-draft`: move cancelled event back to draft
+- [x] [Backend] `GET /api/events`: public event list (published only) with sorting
+- [x] [Backend] `GET /api/events/:eventId`: public event detail (published only)
+- [x] [Backend] Add `sortBy`/`sort` query params with whitelist validation
+
+Current lifecycle:
+
+- `POST /api/admin/events/:id/publish`
+- `POST /api/admin/events/:id/cancel`
+- `POST /api/admin/events/:id/archive`
+- `POST /api/admin/events/:id/move-to-draft`
+- `DELETE /api/admin/events/:id` (soft delete via `deletedAt`, only for `archived` events)
+
+Current scope note:
+
+- Ownership-based authorization (organizer-level ownership checks) is intentionally out of scope for now.
+
+#### Epic 3: Order, Payment & Ticketing
+
+- [x] [Database] Create `orders` table for event payment state
+- [x] [Database] Create `payments` table for payment transactions
+- [x] [Database] Create `tickets` table
+- [x] [Integration] Setup Redis connection (`src/libs/redis.ts`)
+- [x] [Integration] Setup BullMQ `create-payment` and `order-expire` queues
+- [x] [Integration] `create-payment` worker: process payment via active provider (Xendit/Midtrans)
+- [x] [Integration] `order-expire` worker: handle order expiry and release stock
+- [x] [Backend] Create `order-status` constants
+- [x] [Backend] Create `payment-status` constants
+- [x] [Backend] `POST /api/orders`: synchronous order creation and enqueue workers
+- [x] [Integration] `GET /api/orders/:orderId`: order/payment polling endpoint
+- [x] [Integration] `POST /api/payments/webhook`: process callback and update order (Xendit & Midtrans)
+- [x] [Backend] Issue digital ticket only after successful payment (via webhook PAID handler)
+- [x] [Integration] Send payment success + ticket confirmation email after tickets are issued
+
+#### Epic 4: Check-in & Validation
+
+- [ ] [Backend] `POST /api/admin/check-ins`: single endpoint to validate and check-in ticket (with duplicate prevention)
+- [ ] [Integration] Restrict check-in access to organizer/staff/admin
+
+#### Epic 5: Dashboard & Reporting
+
+- [ ] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
+- [ ] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
+- [ ] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
+- [ ] [Backend] `GET /api/admin/events/:eventId/reports/attendees`: attendee report
+- [ ] [Backend] `GET /api/admin/events/:eventId/reports/check-ins`: check-in report
+- [ ] [Integration] Add capacity and remaining quota aggregate query
+- [ ] [Integration] Add date-based report filters
+- [ ] [Backend] Add simple CSV export option
+
+#### Epic 6: Email Notification
+
+- [x] [Integration] Setup email provider (e.g. Nodemailer + SMTP / Resend / SendGrid)
+- [x] [Integration] Create `send-email` BullMQ queue and worker
+- [x] [Integration] Design payment success email template (order summary + ticket list)
+- [x] [Integration] Enqueue send-email job from `handlePaid` in `payment-webhook.service.ts`
+- [x] [Integration] Email contains: event name, date, location, ticket codes, QR token info
+- [x] [Integration] Handle email send failure gracefully (log error, do not block webhook response)
 
 ---
 
 ## 3. Database Schema
 
-Full table schema, relationships, recommended indexes, and Prisma draft are maintained in:
+### Entity Relationship Overview
 
-[database-schema.md](./database-schema.md)
+```text
+users 1--N events
+users 1--N orders
+users 1--N tickets
+events 1--N orders
+events 1--N tickets
+orders 1--1 payments
+orders 1--N tickets
+```
 
----
+### `users`
 
-## 4. Suggested Timeline
+Stores account data for admin, organizer, staff, and attendee users.
 
-| Day | Focus | Output |
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | serial/integer | PK, auto increment | User ID |
+| `full_name` | text | not null | User full name |
+| `email` | text | not null, unique | Login email |
+| `password` | text | not null | Password hash |
+| `role` | text | not null, default `attendee` | `admin`, `organizer`, `staff`, `attendee` |
+| `is_active` | boolean | default true | Account status |
+| `last_login_at` | timestamp | nullable | Last login time |
+| `created_at` | timestamp | nullable (default now) | Creation time |
+| `updated_at` | timestamp | nullable | Last update time |
+| `deleted_at` | timestamp | nullable | Soft delete marker |
+
+### `events`
+
+Stores event data created by organizers.
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | serial/integer | PK, auto increment | Event ID |
+| `organizer_id` | integer | FK `users.id`, not null | Event owner |
+| `title` | text | not null | Event title |
+| `description` | text | nullable | Event description |
+| `category` | text | nullable | Event category |
+| `location` | text | not null | Event location |
+| `start_at` | timestamp | not null | Start datetime |
+| `end_at` | timestamp | not null | End datetime |
+| `price` | integer | not null, default 0 | Ticket price |
+| `capacity` | integer | not null | Participant capacity |
+| `status` | text | not null, default `draft` | `draft`, `published`, `cancelled`, `archived` |
+| `cancel_reason` | text | nullable | Cancellation reason |
+| `published_at` | timestamp | nullable | Publish datetime |
+| `created_at` | timestamp | nullable (default now) | Creation time |
+| `updated_at` | timestamp | nullable | Last update time |
+| `deleted_at` | timestamp | nullable | Soft delete marker |
+
+### `orders`
+
+Stores event ticket purchase orders.
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | text/uuid | PK | Order ID |
+| `order_number` | text | not null, unique | Human-readable order number |
+| `event_id` | integer | FK `events.id`, not null | Related event |
+| `user_id` | integer | FK `users.id`, not null | Buyer |
+| `status` | text | not null, default `pending` | `pending`, `paid`, `failed`, `expired`, `cancelled` |
+| `quantity` | integer | not null, default 1 | Ticket quantity |
+| `subtotal_amount` | integer | not null | Price before fees |
+| `admin_fee` | integer | not null, default 0 | Admin fee |
+| `total_amount` | integer | not null | Total payment amount |
+| `expires_at` | timestamp | nullable | Payment deadline |
+| `paid_at` | timestamp | nullable | Successful payment datetime |
+| `ticket_pdf_url` | text | nullable | URL to downloaded PDF ticket in Storage |
+| `created_at` | timestamp | not null | Creation time |
+| `updated_at` | timestamp | not null | Last update time |
+
+### `payments`
+
+Stores payment transactions from the active payment provider (Xendit or Midtrans).
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | text/uuid | PK | Payment ID |
+| `order_id` | text/uuid | FK `orders.id`, unique, not null | Related order |
+| `provider` | text | not null, default `xendit` | Active provider: `xendit`, `midtrans` |
+| `provider_order_id` | text | not null, unique | Our order number sent to provider |
+| `provider_transaction_id` | text | nullable | Provider transaction ID (from webhook, e.g. Xendit `payment_id`, Midtrans `transaction_id`) |
+| `payment_method` | text | nullable | Generic payment method key (e.g. `BCA_VA`, `GOPAY`, `QRIS`) |
+| `status` | text | not null, default `pending` | `pending`, `paid`, `deny`, `cancel`, `expire`, `failure` |
+| `gross_amount` | integer | not null | Gross payment amount |
+| `provider_token` | text | nullable | Provider token (Xendit: invoice `id`, Midtrans: Snap `token`) |
+| `checkout_url` | text | nullable | Redirect URL to provider payment page |
+| `raw_notification` | jsonb | nullable | Latest webhook payload |
+| `paid_at` | timestamp | nullable | Successful payment datetime |
+| `created_at` | timestamp | not null | Creation time |
+| `updated_at` | timestamp | not null | Last update time |
+
+### `tickets`
+
+Stores digital tickets issued after successful payment.
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | serial/integer | PK, auto increment | Ticket ID |
+| `order_id` | text/uuid | FK `orders.id`, nullable | Related order |
+| `event_id` | integer | FK `events.id`, not null | Related event |
+| `user_id` | integer | FK `users.id`, not null | Ticket owner |
+| `ticket_code` | text | not null, unique | Human-readable ticket code |
+| `qr_token` | text | not null, unique | QR validation token |
+| `status` | text | not null, default `active` | `active`, `cancelled`, `used`, `expired` |
+| `issued_at` | timestamp | not null | Issued datetime |
+| `checked_in_at` | timestamp | nullable | Check-in datetime |
+| `created_at` | timestamp | not null | Creation time |
+| `updated_at` | timestamp | not null | Last update time |
+
+### Recommended Indexes
+
+| Table | Index | Purpose |
 | --- | --- | --- |
-| Day 1 | Authentication | Register, login, auth middleware |
-| Day 2 | Event Management | Event schema and CRUD |
-| Day 3 | Order & Ticketing | Order flow and ticket transactions |
-| Day 4 | Payment | Midtrans transactions, webhook, payment status |
-| Day 5 | Check-in | Ticket validation and check-in |
-| Day 6 | Dashboard & Reports | Stats and reporting endpoints |
-| Day 7 | Hardening | Error handling, security review, edge cases |
-| Day 8 | Testing & Docs | Build checks, manual tests, API docs |
+| `users` | `email` | Login lookup |
+| `users` | `(role, is_active, created_at DESC)` | Admin user list with role/status filters and latest sorting |
+| `users` | `(created_at DESC)` | Default latest-first user sorting |
+| `users` | `GIN (full_name gin_trgm_ops)` | Fast `contains` search on full name |
+| `users` | `GIN (email gin_trgm_ops)` | Fast `contains` search on email |
+| `events` | `organizer_id` | Organizer event queries |
+| `events` | `status` | Published/draft filtering |
+| `events` | `start_at` | Date sorting/filtering |
+| `orders` | `event_id` | Order by event |
+| `orders` | `user_id` | Order by user |
+| `orders` | `status` | Order status filter |
+| `payments` | `provider_order_id` | Webhook lookup by order number |
+| `payments` | `order_id` | Payment-order relation |
+| `tickets` | `ticket_code` | Ticket validation |
+| `tickets` | `qr_token` | QR validation |
+| `tickets` | `event_id` | Tickets by event |
+
+### Audit Timestamp Decision
+
+For `users` and `events`, `created_at` and `updated_at` are intentionally nullable.
+
+Reasons:
+
+- Easier legacy/backfill imports
+- Prevent insert failures when historical metadata is incomplete
+- Normal API flow still sets timestamps consistently
+
+Implementation notes:
+
+- New API records should continue setting `created_at`/`updated_at` consistently.
+- Date-based sorting/filtering queries should handle `NULL` values.
+
+### User Query Optimization Notes
+
+Current implementation patterns:
+
+- Login uses exact `email` lookup (`findUnique`) -> unique `email` index is critical.
+- User list (`getAllUser`) uses:
+  - exact filters: `role`, `isActive`
+  - contains/ILIKE-style filters: `fullName`, `email`
+  - sorting by `createdAt DESC`
+
+High-priority indexes:
+
+1. BTREE composite index on `users(role, is_active, created_at DESC)`
+2. BTREE index on `users(created_at DESC)`
+
+Optional large-scale search indexes:
+
+1. `pg_trgm` + GIN on `full_name`
+2. `pg_trgm` + GIN on `email`
+
+Example PostgreSQL SQL:
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_users_role_active_created_at
+  ON users (role, is_active, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_users_created_at_desc
+  ON users (created_at DESC);
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_users_full_name_trgm
+  ON users USING gin (full_name gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_users_email_trgm
+  ON users USING gin (email gin_trgm_ops);
+```
 
 ---
 
@@ -87,33 +352,33 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/health` | Health check |
-| POST | `/api/auth/register` | Register user |
+| GET | `/api/health` | Check API is alive |
+| POST | `/api/auth/register` | Register new user |
 | POST | `/api/auth/login` | Login user |
-| GET | `/api/auth/me` | Current user profile |
+| GET | `/api/auth/me` | See my profile |
 | POST | `/api/auth/logout` | Logout user |
-| GET | `/api/events` | Public event list (published only) |
-| GET | `/api/events/:eventId` | Public event detail (published only) |
-| POST | `/api/events/:eventId/order` | Place order for event |
-| GET | `/api/orders/:orderId` | Order and payment status |
-| POST | `/api/payments/midtrans/webhook` | Midtrans callback |
-| GET | `/api/tickets/:ticketId` | Ticket detail |
-| POST | `/api/admin/events` | Create event |
-| GET | `/api/admin/events` | List events with filters/pagination/sort |
-| GET | `/api/admin/events/:eventId` | Event detail with organizer info |
-| PATCH | `/api/admin/events/:eventId` | Update event |
-| DELETE | `/api/admin/events/:eventId` | Delete/archive event by lifecycle rule |
-| POST | `/api/admin/events/:eventId/publish` | Publish event |
+| GET | `/api/events` | List public events |
+| GET | `/api/events/:eventId` | Detail public event |
+| POST | `/api/events/:eventId/order` | Buy ticket |
+| GET | `/api/orders/:orderId` | Check order and payment |
+| POST | `/api/payments/midtrans/webhook` | Midtrans callback url |
+| GET | `/api/tickets/:ticketId` | Detail ticket |
+| POST | `/api/admin/events` | Create new event |
+| GET | `/api/admin/events` | List events for admin |
+| GET | `/api/admin/events/:eventId` | Detail event for admin |
+| PATCH | `/api/admin/events/:eventId` | Update event data |
+| DELETE | `/api/admin/events/:eventId` | Delete or archive event |
+| POST | `/api/admin/events/:eventId/publish` | Make event public |
 | POST | `/api/admin/events/:eventId/cancel` | Cancel event |
 | POST | `/api/admin/events/:eventId/archive` | Archive event |
 | POST | `/api/admin/events/:eventId/move-to-draft` | Move cancelled event to draft |
-| POST | `/api/admin/check-ins/validate` | Validate ticket |
-| POST | `/api/admin/check-ins` | Check-in ticket |
-| GET | `/api/admin/events/:eventId/check-ins` | Event check-ins |
-| GET | `/api/admin/dashboard/summary` | Dashboard summary |
-| GET | `/api/admin/events/:eventId/stats` | Event statistics |
-| GET | `/api/admin/events/:eventId/reports/attendees` | Attendee report |
-| GET | `/api/admin/events/:eventId/reports/check-ins` | Check-in report |
+| POST | `/api/admin/check-ins/validate` | Check if ticket is real |
+| POST | `/api/admin/check-ins` | Scan and check-in ticket |
+| GET | `/api/admin/events/:eventId/check-ins` | See event check-in list |
+| GET | `/api/admin/dashboard/summary` | See dashboard total |
+| GET | `/api/admin/events/:eventId/stats` | See event numbers |
+| GET | `/api/admin/events/:eventId/reports/attendees` | See all people in event |
+| GET | `/api/admin/events/:eventId/reports/check-ins` | See check-in report |
 
 ---
 
@@ -125,28 +390,28 @@ Full table schema, relationships, recommended indexes, and Prisma draft are main
 - Express.js
 - TypeScript
 - Prisma ORM
-- PostgreSQL (primary database)
-- Redis (job queue)
-- BullMQ (async workers)
-- Zod (request validation)
-- dotenv (environment config)
+- PostgreSQL (main database)
+- Redis (queue system)
+- BullMQ (background worker)
+- Zod (check request body)
+- dotenv (load env variables)
 
 ### Suggested Libraries
 
 | Library | Purpose |
 | --- | --- |
-| `bcrypt` or `argon2` | Password hashing |
-| `jsonwebtoken` | JWT authentication |
-| `helmet` | Security headers |
-| `cors` | CORS configuration |
-| `express-rate-limit` + `rate-limit-redis` | Distributed rate limiting with Redis backing |
-| `nanoid` | Ticket code and QR token generation |
-| `csv-stringify` | CSV export |
-| `midtrans-client` | Midtrans Snap/Core integration |
-| `nodemailer` or provider SDK | Email notification delivery |
-| `bullmq` + `ioredis` | Order queue, payment jobs, email jobs, and PDF generation jobs |
-| `puppeteer` | Headless HTML to PDF Ticket rendering |
-| `@supabase/supabase-js` | Cloud storage for PDF tickets |
+| `bcrypt` or `argon2` | Hash user password |
+| `jsonwebtoken` | Make JWT token |
+| `helmet` | Add security headers |
+| `cors` | Setup CORS |
+| `express-rate-limit` + `rate-limit-redis` | Limit request using Redis |
+| `nanoid` | Make ticket code and QR token |
+| `csv-stringify` | Download to CSV |
+| `midtrans-client` | Call Midtrans API |
+| `nodemailer` | Send email |
+| `bullmq` + `ioredis` | Queue order, payment, email, PDF |
+| `puppeteer` | Make HTML to PDF ticket |
+| `@supabase/supabase-js` | Save PDF to cloud |
 
 ### Environment Variables
 
@@ -178,29 +443,29 @@ QUEUE_GENERATE_PDF_NAME=generate-pdf
 
 ### Payment & Order Flow Rules
 
-- Midtrans is the payment provider.
-- Attendee places an order for an event, which enqueues a `create-order` job.
-- `create-order` worker creates a pending order and initializes a Midtrans payment.
-- Order endpoint returns order details; frontend polls order status or uses Midtrans Snap redirect.
-- Digital tickets are issued only after successful Midtrans payment callback.
-- Failed/expired payments cancel the order.
-- Primary DB remains source of truth for order, payment, and ticket state.
-- One user cannot hold more than one active order for the same event.
+- We use Midtrans for payment.
+- User order ticket -> send job to `create-order` queue.
+- `create-order` worker make order in database and call Midtrans.
+- API give order detail to frontend. Frontend wait or go to Midtrans page.
+- Digital ticket is made only when Midtrans send success webhook.
+- Failed or expired payment will cancel the order.
+- Database is the source of truth for order, payment, ticket.
+- One user only can have 1 active order for 1 event.
 
 ### Email Notification Rules
 
-- Send order-created email when pending order is created.
-- Send payment-success email after successful webhook processing.
-- Send e-ticket email after ticket issuance.
-- Send payment-failed/expired email on failure or timeout.
-- Email sending must be asynchronous via queue.
-- Email failure must not roll back order/ticket state; log failure for retries.
+- Send email when user place order.
+- Send email when payment is success.
+- Send e-ticket email when ticket is ready.
+- Send email when payment fail or expire.
+- Send email in background using queue.
+- If send email fail, do not delete order or ticket. Just log error and try again.
 
 ### Rate Limiting Rules
 
-- Rate limiting counters must be stored in Redis using unique prefixes per category.
-- **Global Limiter**: 100 requests per 1 minute per client (Key: IP Address + User-Agent). Applied on all `/api` endpoints.
-- **Auth Limiter**: 5 attempts per 15 minutes (Key: IP Address + Email). Applied on login and registration endpoints.
-- **Order Checkout Limiter**: 3 orders per 1 minute (Key: Authenticated User ID or IP). Applied on order creation.
-- Rate limiting must return HTTP status `429 Too Many Requests`.
-- Rate limiting must be automatically bypassed when running tests (`NODE_ENV=test`).
+- Save limit data in Redis.
+- **Global Limit**: 100 request in 1 minute per user IP and browser. For all `/api`.
+- **Auth Limit**: 5 times in 15 minute (IP and Email). For login and register.
+- **Order Limit**: 3 order in 1 minute (User ID or IP). For make order.
+- Return status `429 Too Many Requests` if limit reach.
+- Skip limit if running test (`NODE_ENV=test`).

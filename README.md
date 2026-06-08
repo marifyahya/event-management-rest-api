@@ -1,6 +1,7 @@
 # Event Management REST API
 
-REST API untuk manajemen event, registrasi peserta, pembayaran tiket, slot pool tiket terbatas, check-in, dan laporan. Project ini memakai PostgreSQL sebagai database utama, Redis untuk slot pool/queue, dan BullMQ worker untuk proses asynchronous seperti pembuatan order.
+This is REST API for event management. You can register people, pay tickets, have limited ticket slot, do check-in, and see reports. 
+This project use PostgreSQL for main database. It use Redis for queue and ticket slot. It also use BullMQ worker for background process like create order.
 
 ## Tech Stack
 
@@ -15,23 +16,25 @@ REST API untuk manajemen event, registrasi peserta, pembayaran tiket, slot pool 
 - JWT
 - bcrypt
 - Pino logger
-- Puppeteer (PDF Ticket Generation)
-- Supabase Storage (Cloud Storage)
+- Puppeteer (Make PDF Ticket)
+- Supabase Storage (Save File in Cloud)
 - Rate limiter
 
 ## Install
+
+First, install packages:
 
 ```bash
 npm install
 ```
 
-Copy environment file:
+Copy the env file:
 
 ```bash
 cp .env.example .env
 ```
 
-Sesuaikan isi `.env`:
+Change your `.env` like this:
 
 ```env
 PORT=3000
@@ -50,7 +53,7 @@ SMTP_PORT=465
 SMTP_USER="your.email@gmail.com"
 SMTP_PASS="your-app-password"
 SMTP_FROM="\"Tickets.Live\" <your.email@gmail.com>"
-SMTP_TO_MAIL="dev-sink@example.com" # (Optional) Semua email akan dialihkan ke sini saat mode development
+SMTP_TO_MAIL="dev-sink@example.com" # (Optional) All email will go here in development mode
 
 # Storage Setup (Driver: local or supabase)
 STORAGE_DRIVER="local"
@@ -62,36 +65,36 @@ SUPABASE_KEY="your-supabase-service-role-key"
 SUPABASE_BUCKET="event-orgnzr"
 ```
 
-Pastikan PostgreSQL database dan Redis sudah berjalan.
+Make sure your PostgreSQL and Redis is running.
 
 ## Database
 
-Generate Prisma Client:
+Make Prisma Client:
 
 ```bash
 npm run db:generate
 ```
 
-Jalankan migration:
+Run migration to make tables:
 
 ```bash
 npm run db:migrate
 ```
 
-Jalankan seeder untuk membuat data awal, termasuk user admin:
+Run seed to make first data, like admin user:
 
 ```bash
 npm run db:seed
 ```
 
-Default admin dari seeder:
+Default admin from seed:
 
 ```text
 Email: admin@example.com
 Password: password
 ```
 
-Opsional, buka Prisma Studio:
+If you want, open Prisma Studio to see data:
 
 ```bash
 npm run db:studio
@@ -99,31 +102,31 @@ npm run db:studio
 
 ## Running
 
-Development server:
+Run server for development:
 
 ```bash
 npm run dev
 ```
 
-Jalankan API server dan semua worker sekaligus:
+Run API server and all workers together:
 
 ```bash
 npm run dev:all
 ```
 
-Server API berjalan di:
+API server will run at:
 
 ```text
 http://localhost:3000
 ```
 
-Jalankan semua worker (dalam satu terminal):
+Run all workers (in one terminal):
 
 ```bash
 npm run workers
 ```
 
-Atau jalankan worker secara terpisah:
+Or you can run worker one by one:
 
 ```bash
 npm run worker:create-payment
@@ -132,7 +135,7 @@ npm run worker:send-email
 npm run worker:generate-pdf
 ```
 
-Build dan production run:
+Build and run for production:
 
 ```bash
 npm run build
@@ -144,19 +147,19 @@ npm run start
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Run development server |
-| `npm run dev:all` | Run both API and all workers concurrently |
-| `npm run build` | Compile TypeScript |
-| `npm run start` | Run compiled app |
-| `npm run workers` | Run all BullMQ workers (recommended) |
-| `npm run worker:create-payment` | Run create-payment worker only |
-| `npm run worker:order-expire` | Run order-expire worker only |
-| `npm run worker:send-email` | Run email notification worker only |
-| `npm run worker:generate-pdf` | Run PDF ticket generation worker only |
-| `npm run test` | Run TypeScript build check |
-| `npm run db:generate` | Generate Prisma Client |
-| `npm run db:migrate` | Run Prisma migration |
-| `npm run db:push` | Push schema without migration, for prototyping |
-| `npm run db:seed` | Seed initial database data |
+| `npm run dev:all` | Run API and workers together |
+| `npm run build` | Build TypeScript code |
+| `npm run start` | Run production app |
+| `npm run workers` | Run all BullMQ workers |
+| `npm run worker:create-payment` | Run payment worker |
+| `npm run worker:order-expire` | Run order expire worker |
+| `npm run worker:send-email` | Run email worker |
+| `npm run worker:generate-pdf` | Run make PDF worker |
+| `npm run test` | Run test |
+| `npm run db:generate` | Make Prisma Client |
+| `npm run db:migrate` | Run database migration |
+| `npm run db:push` | Push schema to database |
+| `npm run db:seed` | Put initial data to database |
 | `npm run db:studio` | Open Prisma Studio |
-| `npm run format` | Format files with Prettier |
-| `npm run format:check` | Check formatting |
+| `npm run format` | Make code neat |
+| `npm run format:check` | Check code format |
