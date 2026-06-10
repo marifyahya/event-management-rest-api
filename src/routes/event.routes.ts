@@ -20,5 +20,6 @@ eventRouter.post('/:id/publish', validate(idParamSchema), eventController.publis
 eventRouter.post('/:id/cancel', validate(idParamSchema), validate(cancelEventSchema), eventController.cancel);
 eventRouter.post('/:id/move-to-draft', validate(idParamSchema), eventController.moveToDraft);
 eventRouter.post('/:id/archive', validate(idParamSchema), eventController.archive);
+eventRouter.get('/:id/stats', validate(idParamSchema), eventController.stats);
 
 export default eventRouter;

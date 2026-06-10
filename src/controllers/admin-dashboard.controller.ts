@@ -7,11 +7,11 @@ export const getDashboardSummary = asyncHandler(async (_req: Request, res: Respo
   const [
     { totalOrder, totalPaid, totalPending, totalExpired, totalTicket, totalRevenue },
     totalActiveEvents,
-    totalEvents
+    totalEvents,
   ] = await Promise.all([
     orderService.getTotalOrder(),
     eventService.getTotalActiveEvent(),
-    eventService.getTotalEvent()
+    eventService.getTotalEvent(),
   ]);
 
   res.status(200).json({
@@ -25,7 +25,7 @@ export const getDashboardSummary = asyncHandler(async (_req: Request, res: Respo
       totalEvents,
       totalOrderPaid: totalPaid,
       totalOrderPending: totalPending,
-      totalOrderExpired: totalExpired
+      totalOrderExpired: totalExpired,
     },
   });
 });

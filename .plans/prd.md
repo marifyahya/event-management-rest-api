@@ -140,7 +140,7 @@ Current scope note:
 
 - [x] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
 - [x] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
-- [ ] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
+- [x] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
 - [ ] [Backend] `GET /api/admin/events/:eventId/reports/attendees`: attendee report
 - [ ] [Backend] `GET /api/admin/events/:eventId/reports/check-ins`: check-in report
 - [ ] [Integration] Add capacity and remaining quota aggregate query

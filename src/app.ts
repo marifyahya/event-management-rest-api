@@ -17,9 +17,13 @@ app.use(express.json());
 
 // Load OpenAPI spec
 const swaggerDocument = YAML.load(path.join(process.cwd(), 'openapi.yaml'));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-  customSiteTitle: "Event Organizer API Docs"
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    customSiteTitle: 'Event Organizer API Docs',
+  }),
+);
 
 // Serve static files (Local Storage)
 app.use('/public', express.static(path.join(process.cwd(), 'public')));

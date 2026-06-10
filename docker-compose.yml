@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-event_password}
       POSTGRES_DB: ${POSTGRES_DB:-event_management}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     deploy:
@@ -22,7 +22,7 @@ services:
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD:-secret_redis}
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - '${REDIS_PORT:-6379}:6379'
     deploy:
       resources:
         limits:
@@ -38,7 +38,7 @@ services:
       - db
       - redis
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - '${PORT:-3000}:${PORT:-3000}'
     env_file: .env
     environment:
       # Override local .env connections to point to internal Docker networks
@@ -46,7 +46,7 @@ services:
       - REDIS_URL=redis://${REDIS_USER:-}:${REDIS_PASSWORD:-secret_redis}@redis:6379
       - RUN_MIGRATIONS=true
       - NODE_OPTIONS=--max-old-space-size=400
-    command: ["node", "dist/server.js"]
+    command: ['node', 'dist/server.js']
     deploy:
       resources:
         limits:
@@ -67,7 +67,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-event_user}:${POSTGRES_PASSWORD:-event_password}@db:5432/${POSTGRES_DB:-event_management}?schema=public&connection_limit=10
       - REDIS_URL=redis://${REDIS_USER:-}:${REDIS_PASSWORD:-secret_redis}@redis:6379
       - NODE_OPTIONS=--max-old-space-size=400
-    command: ["node", "dist/workers/index.js"]
+    command: ['node', 'dist/workers/index.js']
     deploy:
       resources:
         limits:

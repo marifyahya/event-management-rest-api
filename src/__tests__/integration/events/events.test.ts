@@ -227,4 +227,33 @@ describe('Admin Events API Endpoints', () => {
       expect(response.body.data.status).toBe(EVENT_STATUS.ARCHIVED);
     });
   });
+
+  describe('GET /api/admin/events/:id/stats', () => {
+    it('should return event statistics successfully (Positive Case)', async () => {
+      prismaMock.event.findUnique.mockResolvedValue(mockEvent);
+
+      prismaMock.order.groupBy.mockResolvedValue([
+        { status: 'paid', _count: { _all: 10 } },
+        { status: 'pending', _count: { _all: 5 } },
+      ] as any);
+
+      prismaMock.ticket.count.mockResolvedValueOnce(10); // totalTicketsSold
+      prismaMock.ticket.count.mockResolvedValueOnce(5); // totalCheckIns
+
+      prismaMock.order.aggregate.mockResolvedValue({
+        _sum: { totalAmount: 5000000 },
+      } as any);
+
+      const response = await request(app).get('/api/admin/events/1/stats').set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+      expect(response.body.data.financial.totalRevenue).toBe(5000000);
+      expect(response.body.data.ticketing.capacity).toBe(150);
+      expect(response.body.data.ticketing.totalTicketsSold).toBe(10);
+      expect(response.body.data.attendance.totalCheckIns).toBe(5);
+      expect(response.body.data.attendance.attendanceRate).toBe(50);
+      expect(response.body.data.orders.paid).toBe(10);
+    });
+  });
 });

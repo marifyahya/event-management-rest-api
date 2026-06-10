@@ -210,3 +210,14 @@ export const publicEventDetail = asyncHandler(async (req: Request, res: Response
     data: rest,
   });
 });
+
+export const stats = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const data = await eventService.getStats(id);
+
+  res.json({
+    status: 'success',
+    message: 'Event statistics fetched successfully',
+    data,
+  });
+});

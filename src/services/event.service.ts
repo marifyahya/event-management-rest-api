@@ -1,4 +1,5 @@
 import { EVENT_STATUS, EVENT_STATUS_LABEL } from '../constants/event-status.js';
+import { ORDER_STATUS } from '../constants/order-status.js';
 import { prisma } from '../db/index.js';
 import { initEventStock } from '../libs/reservation.js';
 import { NotFoundError, ValidationError } from '../utils/app-error.js';
@@ -296,6 +297,64 @@ class EventService {
         },
       },
     });
+  }
+
+  async getStats(id: number) {
+    const event = await this.getEventOrThrow(id);
+
+    const [orderGroups, ticketCount, checkInCount, revenue] = await Promise.all([
+      prisma.order.groupBy({
+        by: ['status'],
+        where: { eventId: id },
+        _count: { _all: true },
+      }),
+      prisma.ticket.count({ where: { eventId: id } }),
+      prisma.ticket.count({ where: { eventId: id, usedAt: { not: null } } }),
+      prisma.order.aggregate({
+        where: { eventId: id, status: ORDER_STATUS.PAID },
+        _sum: { totalAmount: true },
+      }),
+    ]);
+
+    let paid = 0,
+      pending = 0,
+      expired = 0,
+      cancelled = 0,
+      totalOrders = 0;
+
+    orderGroups.forEach((group) => {
+      const count = group._count._all;
+      totalOrders += count;
+      if (group.status === ORDER_STATUS.PAID) paid = count;
+      if (group.status === ORDER_STATUS.PENDING) pending = count;
+      if (group.status === ORDER_STATUS.EXPIRED) expired = count;
+      if (group.status === ORDER_STATUS.CANCELLED) cancelled = count;
+    });
+
+    const totalRevenue = revenue._sum.totalAmount || 0;
+    const attendanceRate = ticketCount > 0 ? Number(((checkInCount / ticketCount) * 100).toFixed(2)) : 0;
+
+    return {
+      financial: {
+        totalRevenue,
+      },
+      ticketing: {
+        capacity: event.capacity,
+        totalTicketsSold: ticketCount,
+        remainingCapacity: event.capacity - ticketCount,
+      },
+      attendance: {
+        totalCheckIns: checkInCount,
+        attendanceRate,
+      },
+      orders: {
+        paid,
+        pending,
+        expired,
+        cancelled,
+        total: totalOrders,
+      },
+    };
   }
 }
 

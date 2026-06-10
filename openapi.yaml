@@ -861,6 +861,85 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/admin/events/{id}/stats:
+    get:
+      summary: Get Event Statistics
+      description: Returns specific metrics for a single event.
+      operationId: getEventStats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Event statistics fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Event statistics fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      financial:
+                        type: object
+                        properties:
+                          totalRevenue:
+                            type: number
+                            example: 50000000
+                      ticketing:
+                        type: object
+                        properties:
+                          capacity:
+                            type: number
+                            example: 1000
+                          totalTicketsSold:
+                            type: number
+                            example: 850
+                          remainingCapacity:
+                            type: number
+                            example: 150
+                      attendance:
+                        type: object
+                        properties:
+                          totalCheckIns:
+                            type: number
+                            example: 600
+                          attendanceRate:
+                            type: number
+                            example: 70.59
+                      orders:
+                        type: object
+                        properties:
+                          paid:
+                            type: number
+                            example: 850
+                          pending:
+                            type: number
+                            example: 50
+                          expired:
+                            type: number
+                            example: 20
+                          cancelled:
+                            type: number
+                            example: 5
+                          total:
+                            type: number
+                            example: 925
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/events:
     get:
       summary: List Public Published Events

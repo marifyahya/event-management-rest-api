@@ -15,9 +15,7 @@ describe('Admin Dashboard API Endpoints', () => {
   });
 
   it('should return 401 if user is not admin', async () => {
-    const res = await request(app)
-      .get('/api/admin/dashboard')
-      .set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app).get('/api/admin/dashboard').set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(401);
   });
@@ -27,13 +25,13 @@ describe('Admin Dashboard API Endpoints', () => {
     prismaMock.order.groupBy.mockResolvedValue([
       { status: ORDER_STATUS.PAID, _count: { _all: 10 } },
       { status: ORDER_STATUS.PENDING, _count: { _all: 5 } },
-      { status: ORDER_STATUS.EXPIRED, _count: { _all: 2 } }
+      { status: ORDER_STATUS.EXPIRED, _count: { _all: 2 } },
     ] as any);
 
     prismaMock.ticket.count.mockResolvedValue(50);
 
     prismaMock.order.aggregate.mockResolvedValue({
-      _sum: { totalAmount: 5000000 }
+      _sum: { totalAmount: 5000000 },
     } as any);
 
     // Active events
@@ -41,9 +39,7 @@ describe('Admin Dashboard API Endpoints', () => {
     // Total events
     prismaMock.event.count.mockResolvedValueOnce(12);
 
-    const res = await request(app)
-      .get('/api/admin/dashboard')
-      .set('Authorization', `Bearer ${adminToken}`);
+    const res = await request(app).get('/api/admin/dashboard').set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
@@ -55,7 +51,7 @@ describe('Admin Dashboard API Endpoints', () => {
       totalTicket: 50,
       totalRevenue: 5000000,
       totalActiveEvents: 5,
-      totalEvents: 12
+      totalEvents: 12,
     });
   });
 });

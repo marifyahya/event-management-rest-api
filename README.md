@@ -37,27 +37,63 @@ cp .env.example .env
 Change your `.env` like this:
 
 ```env
+# ==========================================
+# Core Configuration
+# ==========================================
 PORT=3000
 NODE_ENV=development
-DATABASE_URL="postgresql://event_user:event_password@localhost:5432/event_management?schema=public"
-REDIS_URL="redis://localhost:6379"
-JWT_SECRET="your_jwt_secret_key"
-JWT_EXPIRES_IN="1d"
-LOG_LEVEL="info"
-MIDTRANS_SERVER_KEY="your_midtrans_server_key"
-MIDTRANS_CLIENT_KEY="your_midtrans_client_key"
-MIDTRANS_IS_PRODUCTION=false
-
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_USER="your.email@gmail.com"
-SMTP_PASS="your-app-password"
-SMTP_FROM="\"Tickets.Live\" <your.email@gmail.com>"
-SMTP_TO_MAIL="dev-sink@example.com" # (Optional) All email will go here in development mode
-
-# Storage Setup (Driver: local or supabase)
-STORAGE_DRIVER="local"
+LOG_LEVEL="debug"
 APP_URL="http://localhost:3000"
+JWT_SECRET="your_jwt_secret_key"
+
+# ==========================================
+# Database Configuration
+# ==========================================
+POSTGRES_USER="event_user"
+POSTGRES_PASSWORD="event_password"
+POSTGRES_DB="event_management"
+POSTGRES_PORT=5432
+DATABASE_URL="postgresql://event_user:event_password@localhost:5432/event_management?schema=public"
+
+# ==========================================
+# Redis & Queue Configuration
+# ==========================================
+REDIS_USER=""
+REDIS_PASSWORD=""
+REDIS_PORT=6379
+REDIS_URL="redis://localhost:6379"
+
+RESERVATION_TTL=600
+
+# ==========================================
+# Payment Gateway Configuration
+# ==========================================
+PAYMENT_GATEWAY_PROVIDER="xendit"
+
+# Midtrans Setup
+MIDTRANS_API_URL="https://app.sandbox.midtrans.com/snap/v1/transactions"
+MIDTRANS_SERVER_KEY=""
+MIDTRANS_CLIENT_KEY=""
+
+# Xendit Setup
+XENDIT_API_URL="https://api.xendit.co"
+XENDIT_SECRET_KEY=""
+XENDIT_WEBHOOK_TOKEN=""
+
+# ==========================================
+# Email (SMTP) Configuration
+# ==========================================
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_USER="your@gmail.com"
+SMTP_PASS="your_app_password"
+SMTP_FROM="Event Organizer <noreply@example.com>"
+SMTP_TO_MAIL=""
+
+# ==========================================
+# Storage Configuration
+# ==========================================
+STORAGE_DRIVER="local"
 
 # Supabase Storage Setup
 SUPABASE_URL="https://your-project-id.supabase.co"
@@ -161,6 +197,17 @@ To stop the services:
 ```bash
 docker-compose down
 ```
+
+## API Documentation
+
+This project uses Swagger UI for interactive API documentation. 
+Once the server is running (locally or via Docker), you can access the full API documentation at:
+
+```text
+http://localhost:3000/api-docs
+```
+
+The documentation covers all endpoints, including the recently added **Admin Dashboard** and **Event Statistics** endpoints, and allows you to test them directly from your browser.
 
 ## Scripts
 

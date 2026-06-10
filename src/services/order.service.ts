@@ -145,7 +145,7 @@ class OrderService {
       totalPending,
       totalExpired,
       totalTicket,
-      totalRevenue: totalRevenue._sum.totalAmount || 0
+      totalRevenue: totalRevenue._sum.totalAmount || 0,
     };
   }
 }

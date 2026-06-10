@@ -170,7 +170,13 @@ Content-Type: {{contentType}}
   "qrToken": "271d80340acf628cb30cdb8fe64f3277"
 }
 
-### Get Admin Dashboard
-GET {{baseUrl}}/api/admin/dashboard
+### Get Admin Dashboard Summary
+GET {{baseUrl}}/api/admin/dashboard/summary
 Authorization: Bearer {{token}}
 Accept: {{contentType}}
+
+### Get Specific Event Statistics (Admin)
+GET {{baseUrl}}/api/admin/events/20/stats
+Authorization: Bearer {{token}}
+Accept: {{contentType}}
+
