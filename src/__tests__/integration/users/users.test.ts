@@ -44,9 +44,7 @@ describe('Users API Endpoints', () => {
     it('should return user detail by ID (Positive Case)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
 
-      const response = await request(app)
-        .get('/api/users/1')
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await request(app).get('/api/users/1').set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -56,9 +54,7 @@ describe('Users API Endpoints', () => {
     it('should return 404 if user not found (Negative Case)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      const response = await request(app)
-        .get('/api/users/999')
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await request(app).get('/api/users/999').set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
@@ -77,15 +73,12 @@ describe('Users API Endpoints', () => {
         role: 'staff',
       });
 
-      const response = await request(app)
-        .post('/api/users')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          fullName: 'New User',
-          email: 'newuser@example.com',
-          password: 'password123',
-          role: 'staff',
-        });
+      const response = await request(app).post('/api/users').set('Authorization', `Bearer ${adminToken}`).send({
+        fullName: 'New User',
+        email: 'newuser@example.com',
+        password: 'password123',
+        role: 'staff',
+      });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -95,15 +88,12 @@ describe('Users API Endpoints', () => {
     it('should return 400 if email already exists (Negative Case)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser); // Email already exists
 
-      const response = await request(app)
-        .post('/api/users')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          fullName: 'Unique Name',
-          email: 'admin@example.com',
-          password: 'password123',
-          role: 'staff',
-        });
+      const response = await request(app).post('/api/users').set('Authorization', `Bearer ${adminToken}`).send({
+        fullName: 'Unique Name',
+        email: 'admin@example.com',
+        password: 'password123',
+        role: 'staff',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -119,12 +109,9 @@ describe('Users API Endpoints', () => {
         fullName: 'Updated Name',
       });
 
-      const response = await request(app)
-        .patch('/api/users/1')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          fullName: 'Updated Name',
-        });
+      const response = await request(app).patch('/api/users/1').set('Authorization', `Bearer ${adminToken}`).send({
+        fullName: 'Updated Name',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -134,12 +121,9 @@ describe('Users API Endpoints', () => {
     it('should return 404 if user not found for update (Negative Case)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      const response = await request(app)
-        .patch('/api/users/999')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          fullName: 'Updated Name',
-        });
+      const response = await request(app).patch('/api/users/999').set('Authorization', `Bearer ${adminToken}`).send({
+        fullName: 'Updated Name',
+      });
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
@@ -155,9 +139,7 @@ describe('Users API Endpoints', () => {
         deletedAt: new Date(),
       });
 
-      const response = await request(app)
-        .delete('/api/users/1')
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await request(app).delete('/api/users/1').set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -167,9 +149,7 @@ describe('Users API Endpoints', () => {
     it('should return 404 if user not found for delete (Negative Case)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      const response = await request(app)
-        .delete('/api/users/999')
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await request(app).delete('/api/users/999').set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);

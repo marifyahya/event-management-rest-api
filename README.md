@@ -16,7 +16,7 @@ This project use PostgreSQL for main database. It use Redis for queue and ticket
 - JWT
 - bcrypt
 - Pino logger
-- Puppeteer (Make PDF Ticket)
+- pdfmake (Make PDF Ticket)
 - Supabase Storage (Save File in Cloud)
 - Rate limiter
 
@@ -140,6 +140,26 @@ Build and run for production:
 ```bash
 npm run build
 npm run start
+```
+
+## Docker (Docker Compose)
+
+You can run this project using Docker Compose. It will spin up PostgreSQL, Redis, the API, and the BullMQ Worker.
+
+1. Make sure Docker is running.
+2. Build and start all services in the background:
+   ```bash
+   docker-compose up --build -d
+   ```
+3. Check the logs:
+   ```bash
+   docker-compose logs -f
+   ```
+4. API will be available at `http://localhost:3000`.
+
+To stop the services:
+```bash
+docker-compose down
 ```
 
 ## Scripts

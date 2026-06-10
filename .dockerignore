@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+coverage
+.nyc_output
+.git
+.gitignore
+.vscode
+.idea
+README.md
+.plans
+.notes
+docker-compose.yml
+k8s/

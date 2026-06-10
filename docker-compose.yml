@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: event_db
+    restart: always
+    environment:
+      POSTGRES_USER: event_user
+      POSTGRES_PASSWORD: event_password
+      POSTGRES_DB: event_management
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    container_name: event_redis
+    restart: always
+    ports:
+      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  api:
+    build:
+      context: .
+      target: runner
+    container_name: event_api
+    restart: always
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '3000:3000'
+    env_file: .env
+    environment:
+      # Override local .env connections to point to internal Docker networks
+      - PORT=3000
+      - DATABASE_URL=postgresql://event_user:event_password@db:5432/event_management?schema=public&connection_limit=10
+      - REDIS_URL=redis://redis:6379
+      - RUN_MIGRATIONS=true
+      - NODE_OPTIONS=--max-old-space-size=400
+    command: ['node', 'dist/server.js']
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  worker:
+    build:
+      context: .
+      target: runner
+    container_name: event_worker
+    restart: always
+    depends_on:
+      - db
+      - redis
+    env_file: .env
+    environment:
+      # Override local .env connections to point to internal Docker networks
+      - DATABASE_URL=postgresql://event_user:event_password@db:5432/event_management?schema=public&connection_limit=10
+      - REDIS_URL=redis://redis:6379
+      - NODE_OPTIONS=--max-old-space-size=400
+    command: ['node', 'dist/workers/index.js']
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  postgres_data:

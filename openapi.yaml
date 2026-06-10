@@ -118,7 +118,7 @@ paths:
                     example: Email already exists
                   errors:
                     type: object
-                    example: { email: ["Invalid email format"] }
+                    example: { email: ['Invalid email format'] }
         '429':
           $ref: '#/components/responses/TooManyAuthRequests'
 
