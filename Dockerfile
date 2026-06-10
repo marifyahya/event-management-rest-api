@@ -38,6 +38,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
+COPY openapi.yaml ./
 
 # Install ONLY production dependencies
 RUN npm install --omit=dev

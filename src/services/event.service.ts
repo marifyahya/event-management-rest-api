@@ -275,6 +275,28 @@ class EventService {
     if (!event) throw new NotFoundError('Event not found');
     return event;
   }
+
+  getTotalEvent() {
+    return prisma.event.count({
+      where: {
+        status: EVENT_STATUS.PUBLISHED,
+      },
+    });
+  }
+
+  getTotalActiveEvent() {
+    return prisma.event.count({
+      where: {
+        status: EVENT_STATUS.PUBLISHED,
+        startAt: {
+          gte: new Date(),
+        },
+        endAt: {
+          gte: new Date(),
+        },
+      },
+    });
+  }
 }
 
 export const eventService = new EventService();

@@ -112,6 +112,42 @@ class OrderService {
 
     return order;
   }
+
+  async getTotalOrder() {
+    const [orderGroups, totalTicket, totalRevenue] = await Promise.all([
+      prisma.order.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      prisma.ticket.count(),
+      prisma.order.aggregate({
+        where: { status: ORDER_STATUS.PAID },
+        _sum: { totalAmount: true },
+      }),
+    ]);
+
+    let totalPaid = 0;
+    let totalPending = 0;
+    let totalExpired = 0;
+    let totalOrder = 0;
+
+    orderGroups.forEach((group) => {
+      const count = group._count._all;
+      totalOrder += count;
+      if (group.status === ORDER_STATUS.PAID) totalPaid = count;
+      if (group.status === ORDER_STATUS.PENDING) totalPending = count;
+      if (group.status === ORDER_STATUS.EXPIRED) totalExpired = count;
+    });
+
+    return {
+      totalOrder,
+      totalPaid,
+      totalPending,
+      totalExpired,
+      totalTicket,
+      totalRevenue: totalRevenue._sum.totalAmount || 0
+    };
+  }
 }
 
 export const orderService = new OrderService();

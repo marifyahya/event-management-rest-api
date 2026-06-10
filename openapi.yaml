@@ -7,7 +7,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: /
+  - url: localhost
     description: Relative URL for local development
 security:
   - BearerAuth: []
@@ -1075,6 +1075,61 @@ paths:
                   success:
                     type: boolean
                     example: true
+
+  /api/admin/dashboard:
+    get:
+      summary: Admin Dashboard Summary
+      description: Returns overall metrics for admin dashboard including revenues and orders.
+      operationId: getAdminDashboardSummary
+      tags:
+        - Admin Dashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Dashboard data fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      totalRevenue:
+                        type: number
+                        example: 5000000
+                      totalOrder:
+                        type: number
+                        example: 100
+                      totalTicket:
+                        type: number
+                        example: 350
+                      totalActiveEvents:
+                        type: number
+                        example: 5
+                      totalEvents:
+                        type: number
+                        example: 12
+                      totalOrderPaid:
+                        type: number
+                        example: 80
+                      totalOrderPending:
+                        type: number
+                        example: 15
+                      totalOrderExpired:
+                        type: number
+                        example: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /api/admin/check-ins:
     post:

@@ -133,13 +133,13 @@ Current scope note:
 
 #### Epic 4: Check-in & Validation
 
-- [ ] [Backend] `POST /api/admin/check-ins`: single endpoint to validate and check-in ticket (with duplicate prevention)
-- [ ] [Integration] Restrict check-in access to organizer/staff/admin
+- [x] [Backend] `POST /api/admin/check-ins`: single endpoint to validate and check-in ticket (with duplicate prevention)
+- [x] [Integration] Restrict check-in access to organizer/staff/admin
 
 #### Epic 5: Dashboard & Reporting
 
-- [ ] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
-- [ ] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
+- [x] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
+- [x] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
 - [ ] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
 - [ ] [Backend] `GET /api/admin/events/:eventId/reports/attendees`: attendee report
 - [ ] [Backend] `GET /api/admin/events/:eventId/reports/check-ins`: check-in report
