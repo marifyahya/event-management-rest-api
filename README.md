@@ -3,6 +3,17 @@
 This is REST API for event management. You can register people, pay tickets, have limited ticket slot, do check-in, and see reports. 
 This project use PostgreSQL for main database. It use Redis for queue and ticket slot. It also use BullMQ worker for background process like create order.
 
+
+## Key Features
+
+- **Authentication & Authorization**: JWT-based auth with Role-Based Access Control (Admin vs User).
+- **Event Management**: Complete CRUD for events, drafting, publishing, and archiving.
+- **Ticketing & Orders**: Reserve tickets, process payments via Midtrans/Xendit Webhooks, and generate PDF tickets.
+- **Background Processing**: Redis + BullMQ for asynchronous email sending, order expiration, and PDF generation.
+- **Data Export (Streaming)**: Export millions of rows to CSV (`fast-csv`) or XLSX (`exceljs`) without memory leaks. Supports dynamic `timezone` formatting.
+- **Check-ins**: QR code generation and validation for event check-ins.
+- **Security**: Rate limiting (Redis-based), payload validation (Zod), and robust error handling.
+
 ## Tech Stack
 
 - Node.js

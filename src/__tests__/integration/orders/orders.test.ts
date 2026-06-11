@@ -119,4 +119,47 @@ describe('Orders API Endpoints', () => {
       expect(response.body.error.message).toBe('Order not found');
     });
   });
+  describe('GET /api/admin/orders', () => {
+    const adminToken = generateToken({ id: 1, role: 'admin' });
+
+    it('should return all orders for admin (Positive Case)', async () => {
+      prismaMock.order.findMany.mockResolvedValue([mockOrder] as any);
+      prismaMock.order.count.mockResolvedValue(1);
+
+      const response = await request(app)
+        .get('/api/admin/orders')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should export orders to CSV (Positive Case)', async () => {
+      prismaMock.order.findMany
+        .mockResolvedValueOnce([mockOrder] as any)
+        .mockResolvedValueOnce([]); // To break the while loop
+
+      const response = await request(app)
+        .get('/api/admin/orders?export=csv')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('text/csv');
+      expect(response.headers['content-disposition']).toContain('attachment; filename="orders-export.csv"');
+    });
+
+    it('should export orders to XLSX (Positive Case)', async () => {
+      prismaMock.order.findMany
+        .mockResolvedValueOnce([mockOrder] as any)
+        .mockResolvedValueOnce([]); // To break the while loop
+
+      const response = await request(app)
+        .get('/api/admin/orders?export=xlsx')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('spreadsheetml');
+      expect(response.headers['content-disposition']).toContain('attachment; filename="orders-export.xlsx"');
+    });
+  });
 });

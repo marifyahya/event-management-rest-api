@@ -504,6 +504,18 @@ paths:
           schema:
             type: string
             enum: [DRAFT, PUBLISHED, CANCELLED, ARCHIVED]
+        - name: timezone
+          in: query
+          schema:
+            type: string
+            example: Asia/Jakarta
+          description: Optional timezone to format dates in the CSV output (e.g. Asia/Jakarta)
+        - name: export
+          in: query
+          schema:
+            type: string
+            enum: [csv, xlsx]
+          description: If set to csv, downloads the entire filtered list as a CSV file (ignoring page/limit)
       responses:
         '200':
           description: Events retrieved successfully
@@ -1266,6 +1278,65 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
+  /api/admin/orders:
+    get:
+      summary: Get All Orders (Admin)
+      description: Returns a paginated list of all orders. Supports CSV export without pagination limit.
+      operationId: getAdminOrders
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: eventId
+          schema:
+            type: integer
+          description: Filter orders by Event ID
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, paid, expired, cancelled]
+          description: Filter orders by payment status
+        - in: query
+          name: export
+          schema:
+            type: string
+            enum: [csv, xlsx]
+          description: If set to csv, downloads the entire filtered list as a CSV file (ignoring page/limit)
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number (ignored if export=csv)
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page (ignored if export=csv)
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1383,3 +1454,19 @@ components:
             timestamp:
               type: string
               format: date-time
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+            text/csv:
+              schema:
+                type: string
+                format: binary

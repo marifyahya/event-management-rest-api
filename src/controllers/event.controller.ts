@@ -15,7 +15,7 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, title, category, status, sortBy, sort } = req.query;
+  const { page, limit, title, category, status, sortBy, sort, export: exportFormat, timezone } = req.query;
   const query = {
     page: page ? Number(page) : undefined,
     limit: limit ? Number(limit) : undefined,
@@ -26,6 +26,20 @@ export const index = asyncHandler(async (req: Request, res: Response) => {
     sortBy: sortBy ? String(sortBy) : undefined,
     sort: sort ? String(sort) : undefined,
   };
+
+  if (exportFormat === 'csv' || exportFormat === 'xlsx') {
+    const filters: any = {};
+    if (query.title) filters.title = { contains: query.title, mode: 'insensitive' };
+    if (query.category) filters.category = query.category;
+    if (query.status) filters.status = query.status;
+    if (query.location) filters.location = { contains: query.location, mode: 'insensitive' };
+
+    if (exportFormat === 'csv') {
+      return await eventService.exportCSV(filters, res, timezone as string);
+    } else {
+      return await eventService.exportXLSX(filters, res, timezone as string);
+    }
+  }
 
   const events = await eventService.getAllEvent(query);
 

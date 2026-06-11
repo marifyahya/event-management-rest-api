@@ -98,6 +98,8 @@ export const eventListSchema = z.object({
     category: z.string().optional(),
     location: z.string().optional(),
     status: z.enum(EVENT_STATUS_VALUES).optional(),
+    export: z.enum(['csv', 'xlsx']).optional(),
+    timezone: z.string().optional(),
   }),
 });
 

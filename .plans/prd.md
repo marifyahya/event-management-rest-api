@@ -141,11 +141,8 @@ Current scope note:
 - [x] [Database] Ensure aggregation-friendly indexes/relations for events, tickets, payments, check-ins
 - [x] [Backend] `GET /api/admin/dashboard/summary`: total events/tickets/check-ins
 - [x] [Backend] `GET /api/admin/events/:eventId/stats`: event statistics
-- [ ] [Backend] `GET /api/admin/events/:eventId/reports/attendees`: attendee report
-- [ ] [Backend] `GET /api/admin/events/:eventId/reports/check-ins`: check-in report
-- [ ] [Integration] Add capacity and remaining quota aggregate query
-- [ ] [Integration] Add date-based report filters
-- [ ] [Backend] Add simple CSV export option
+- [x] [Backend] Support `?export=csv` parameter on `GET /api/admin/events` (filtered, no limit)
+- [x] [Backend] Support `?export=csv` parameter on `GET /api/admin/orders` (filtered, no limit)
 
 #### Epic 6: Email Notification
 
@@ -377,8 +374,8 @@ CREATE INDEX IF NOT EXISTS idx_users_email_trgm
 | GET | `/api/admin/events/:eventId/check-ins` | See event check-in list |
 | GET | `/api/admin/dashboard/summary` | See dashboard total |
 | GET | `/api/admin/events/:eventId/stats` | See event numbers |
-| GET | `/api/admin/events/:eventId/reports/attendees` | See all people in event |
-| GET | `/api/admin/events/:eventId/reports/check-ins` | See check-in report |
+| GET | `/api/admin/events?export=csv|xlsx` | Download events data as CSV or XLSX |
+| GET | `/api/admin/orders?export=csv|xlsx` | Download orders data as CSV or XLSX |
 
 ---
 
@@ -406,7 +403,8 @@ CREATE INDEX IF NOT EXISTS idx_users_email_trgm
 | `cors` | Setup CORS |
 | `express-rate-limit` + `rate-limit-redis` | Limit request using Redis |
 | `nanoid` | Make ticket code and QR token |
-| `csv-stringify` | Download to CSV |
+| `fast-csv` | Download to CSV (Streaming) |
+| `exceljs` | Download to XLSX (Streaming) |
 | `midtrans-client` | Call Midtrans API |
 | `nodemailer` | Send email |
 | `bullmq` + `ioredis` | Queue order, payment, email, PDF |
@@ -416,50 +414,81 @@ CREATE INDEX IF NOT EXISTS idx_users_email_trgm
 ### Environment Variables
 
 ```env
-NODE_ENV=development
+# ==========================================
+# Core Configuration
+# ==========================================
 PORT=3000
+NODE_ENV=development
+LOG_LEVEL="debug"
+APP_URL="http://localhost:3000"
+JWT_SECRET="your_jwt_secret_key"
+
+# ==========================================
+# Database Configuration
+# ==========================================
+POSTGRES_USER="event_user"
+POSTGRES_PASSWORD="event_password"
+POSTGRES_DB="event_management"
+POSTGRES_PORT=5432
 DATABASE_URL="postgresql://event_user:event_password@localhost:5432/event_management?schema=public"
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=change_me
-JWT_EXPIRES_IN=7d
-PASSWORD_HASH_ROUNDS=12
-TICKET_CODE_PREFIX=EVT
-MIDTRANS_SERVER_KEY=change_me
-MIDTRANS_CLIENT_KEY=change_me
-MIDTRANS_IS_PRODUCTION=false
-MAIL_FROM="Event Management <no-reply@example.com>"
-SMTP_HOST=smtp.example.com
+
+# ==========================================
+# Redis & Queue Configuration
+# ==========================================
+REDIS_USER=""
+REDIS_PASSWORD=""
+REDIS_PORT=6379
+REDIS_URL="redis://localhost:6379"
+
+RESERVATION_TTL=600
+
+# ==========================================
+# Payment Gateway Configuration
+# ==========================================
+PAYMENT_GATEWAY_PROVIDER="xendit"
+
+# Midtrans Setup
+MIDTRANS_API_URL="https://app.sandbox.midtrans.com/snap/v1/transactions"
+MIDTRANS_SERVER_KEY=""
+MIDTRANS_CLIENT_KEY=""
+
+# Xendit Setup
+XENDIT_API_URL="https://api.xendit.co"
+XENDIT_SECRET_KEY=""
+XENDIT_WEBHOOK_TOKEN=""
+
+# ==========================================
+# Email (SMTP) Configuration
+# ==========================================
+SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=587
-SMTP_USER=change_me
-SMTP_PASS=change_me
-STORAGE_DRIVER=local
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=service_role_key
-SUPABASE_BUCKET=event-orgnzr
-QUEUE_CREATE_ORDER_NAME=create-order
-QUEUE_EMAIL_NAME=email-notification
-QUEUE_GENERATE_PDF_NAME=generate-pdf
+SMTP_USER="your@gmail.com"
+SMTP_PASS="your_app_password"
+SMTP_FROM="Event Organizer <noreply@example.com>"
+SMTP_TO_MAIL=""
+
+# ==========================================
+# Storage Configuration
+# ==========================================
+STORAGE_DRIVER="local"
+
+# Supabase Storage Setup
+SUPABASE_URL="https://your-project-id.supabase.co"
+SUPABASE_KEY="your-supabase-service-role-key"
+SUPABASE_BUCKET="event-orgnzr"
 ```
 
 ### Payment & Order Flow Rules
 
-- We use Midtrans for payment.
-- User order ticket -> send job to `create-order` queue.
-- `create-order` worker make order in database and call Midtrans.
-- API give order detail to frontend. Frontend wait or go to Midtrans page.
-- Digital ticket is made only when Midtrans send success webhook.
-- Failed or expired payment will cancel the order.
-- Database is the source of truth for order, payment, ticket.
-- One user only can have 1 active order for 1 event.
-
-### Email Notification Rules
-
-- Send email when user place order.
-- Send email when payment is success.
-- Send e-ticket email when ticket is ready.
-- Send email when payment fail or expire.
-- Send email in background using queue.
-- If send email fail, do not delete order or ticket. Just log error and try again.
+- **Multi-Gateway Support**: We support both **Midtrans** and **Xendit** as payment gateways (configurable via `PAYMENT_GATEWAY_PROVIDER`).
+- **Stock Reservation**: When a user creates an order, we use Redis to reserve the ticket slot temporarily (`RESERVATION_TTL=600` seconds) to prevent overselling.
+- **Asynchronous Payment Link**: Order is saved to the database in `PENDING` state, and a job is sent to the `create-payment` queue.
+- **Worker Processing**: The `create-payment` worker calls the chosen payment gateway (Midtrans/Xendit) to generate a checkout URL, then updates the database.
+- **Webhook Handling**: The system listens to webhooks from the payment gateway to update payment status (`PAID`, `EXPIRED`, `CANCELLED`).
+- **Ticket Issuance**: Digital tickets are created only when the payment webhook confirms a `PAID` status.
+- **Background Generation**: Once paid, jobs are dispatched to `generate-pdf` to create the e-ticket, and `send-email` to deliver it.
+- **Auto-Expiration**: Unpaid orders are automatically expired by the `order-expire` worker after the TTL runs out.
+- **Concurrency Limitation**: One user can only have 1 active (pending) order for 1 event at a time to prevent hoarding.
 
 ### Rate Limiting Rules
 

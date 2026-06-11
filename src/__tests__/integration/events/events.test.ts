@@ -72,6 +72,33 @@ describe('Admin Events API Endpoints', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(1);
     });
+    it('should export events to CSV (Positive Case)', async () => {
+      prismaMock.event.findMany
+        .mockResolvedValueOnce([mockEvent] as any)
+        .mockResolvedValueOnce([]); // To break the while loop
+
+      const response = await request(app)
+        .get('/api/admin/events?export=csv')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('text/csv');
+      expect(response.headers['content-disposition']).toContain('attachment; filename="events-export.csv"');
+    });
+
+    it('should export events to XLSX (Positive Case)', async () => {
+      prismaMock.event.findMany
+        .mockResolvedValueOnce([mockEvent] as any)
+        .mockResolvedValueOnce([]); // To break the while loop
+
+      const response = await request(app)
+        .get('/api/admin/events?export=xlsx')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('spreadsheetml');
+      expect(response.headers['content-disposition']).toContain('attachment; filename="events-export.xlsx"');
+    });
   });
 
   describe('GET /api/admin/events/:id', () => {

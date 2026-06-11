@@ -9,6 +9,7 @@ import orderRouter from './order.routes.js';
 import paymentRouter from './payment.routes.js';
 import checkinRouter from './checkin.routes.js';
 import adminDashboardRouter from './admin-dashboard.routes.js';
+import adminOrderRouter from './admin-order.routes.js';
 
 const router = Router();
 const protectedRouter = Router();
@@ -31,6 +32,7 @@ protectedRouter.use('/orders', orderRouter);
 protectedRouter.use('/admin/events', eventRouter);
 protectedRouter.use('/admin/check-ins', checkinRouter);
 protectedRouter.use('/admin/dashboard', adminDashboardRouter);
+protectedRouter.use('/admin/orders', adminOrderRouter);
 
 router.use(protectedRouter);
 

@@ -3,6 +3,10 @@ import { ORDER_STATUS } from '../constants/order-status.js';
 import { prisma } from '../db/index.js';
 import { initEventStock } from '../libs/reservation.js';
 import { NotFoundError, ValidationError } from '../utils/app-error.js';
+import { format } from 'fast-csv';
+import { Response } from 'express';
+import { formatCSVDate } from '../utils/date-formatter.js';
+import ExcelJS from 'exceljs';
 
 const toDate = (value: string) => new Date(value.replace(' ', 'T') + ':00');
 
@@ -356,6 +360,115 @@ class EventService {
       },
     };
   }
-}
 
+  async exportCSV(filters: any, res: Response, timezone?: string) {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="events-export.csv"');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const csvStream = format({ headers: true });
+    csvStream.pipe(res);
+
+    let cursorId: number | undefined = undefined;
+    const BATCH_SIZE = 5000;
+
+    while (true) {
+      const events: any[] = await prisma.event.findMany({
+        take: BATCH_SIZE,
+        skip: cursorId ? 1 : 0,
+        cursor: cursorId ? { id: cursorId } : undefined,
+        where: filters,
+        orderBy: { id: 'asc' },
+      });
+
+      if (events.length === 0) {
+        break;
+      }
+
+      for (const event of events) {
+        csvStream.write({
+          'Event ID': event.id,
+          Title: event.title,
+          Category: event.category || '-',
+          Location: event.location,
+          Capacity: event.capacity,
+          Price: event.price,
+          Status: EVENT_STATUS_LABEL[event.status as keyof typeof EVENT_STATUS_LABEL] || event.status,
+          'Start Date': formatCSVDate(event.startAt, timezone),
+          'End Date': formatCSVDate(event.endAt, timezone),
+          'Created At': formatCSVDate(event.createdAt, timezone),
+        });
+      }
+
+      cursorId = events[events.length - 1].id;
+    }
+
+    csvStream.end();
+  }
+
+  async exportXLSX(filters: any, res: Response, timezone?: string) {
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="events-export.xlsx"');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+      stream: res as any,
+      useStyles: true,
+      useSharedStrings: true,
+    });
+
+    const worksheet = workbook.addWorksheet('Events');
+
+    worksheet.columns = [
+      { header: 'Event ID', key: 'id', width: 10 },
+      { header: 'Title', key: 'title', width: 30 },
+      { header: 'Category', key: 'category', width: 20 },
+      { header: 'Location', key: 'location', width: 25 },
+      { header: 'Capacity', key: 'capacity', width: 10 },
+      { header: 'Price', key: 'price', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Start Date', key: 'startDate', width: 25 },
+      { header: 'End Date', key: 'endDate', width: 25 },
+      { header: 'Created At', key: 'createdAt', width: 25 },
+    ];
+
+    let cursorId: number | undefined = undefined;
+    const BATCH_SIZE = 5000;
+
+    while (true) {
+      const events: any[] = await prisma.event.findMany({
+        take: BATCH_SIZE,
+        skip: cursorId ? 1 : 0,
+        cursor: cursorId ? { id: cursorId } : undefined,
+        where: filters,
+        orderBy: { id: 'asc' },
+      });
+
+      if (events.length === 0) {
+        break;
+      }
+
+      for (const event of events) {
+        worksheet
+          .addRow({
+            id: event.id,
+            title: event.title,
+            category: event.category || '-',
+            location: event.location,
+            capacity: event.capacity,
+            price: event.price,
+            status: EVENT_STATUS_LABEL[event.status as keyof typeof EVENT_STATUS_LABEL] || event.status,
+            startDate: formatCSVDate(event.startAt, timezone),
+            endDate: formatCSVDate(event.endAt, timezone),
+            createdAt: formatCSVDate(event.createdAt, timezone),
+          })
+          .commit();
+      }
+
+      cursorId = events[events.length - 1].id;
+    }
+
+    await workbook.commit();
+  }
+}
 export const eventService = new EventService();
